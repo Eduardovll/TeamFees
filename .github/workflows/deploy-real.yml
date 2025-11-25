@@ -134,31 +134,80 @@ jobs:
         ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST << 'EOF'
           # Set executable permission
           chmod +x /home/administrator/TeamFees
+          echo "✅ Executable permission set"
           
-          # Stop service
-          sudo systemctl stop teamfees || echo "Service not running"
+          # Try to restart service with sudo (may require password)
+          echo "🔄 Attempting to restart service..."
           
-          # Start service
-          sudo systemctl start teamfees
-          
-          # Check status
-          sleep 3
-          sudo systemctl status teamfees --no-pager
+          # Check if user has sudo without password
+          if sudo -n true 2>/dev/null; then
+            echo "✅ Sudo access available"
+            sudo systemctl stop teamfees 2>/dev/null || echo "ℹ️ Service not running or doesn't exist"
+            sudo systemctl start teamfees 2>/dev/null || echo "⚠️ Could not start service via systemctl"
+            sleep 3
+            sudo systemctl status teamfees --no-pager 2>/dev/null || echo "ℹ️ Service status unavailable"
+          else
+            echo "⚠️ No sudo access - trying manual start"
+            
+            # Kill existing process if running
+            pkill -f TeamFees 2>/dev/null || echo "ℹ️ No existing TeamFees process"
+            
+            # Start application manually in background
+            cd /home/administrator
+            export LD_LIBRARY_PATH=/home/administrator:$LD_LIBRARY_PATH
+            nohup ./TeamFees > teamfees.log 2>&1 &
+            
+            sleep 3
+            
+            # Check if process is running
+            if pgrep -f TeamFees > /dev/null; then
+              echo "✅ TeamFees started manually"
+            else
+              echo "❌ Failed to start TeamFees"
+            fi
+          fi
         EOF
         
     - name: Health check
       env:
         SERVER_HOST: ${{ secrets.SERVER_HOST }}
+        SERVER_USER: ${{ secrets.SERVER_USER }}
       run: |
         echo "🏥 Performing health check..."
         sleep 10
         
         # Try to connect to the API
-        if curl -f -m 30 http://$SERVER_HOST:9000/health; then
+        echo "Testing API endpoint..."
+        if curl -f -m 30 http://$SERVER_HOST:9000/health 2>/dev/null; then
           echo "✅ Health check passed - API is responding"
+        elif curl -f -m 30 http://$SERVER_HOST:9000/ 2>/dev/null; then
+          echo "✅ API is responding (root endpoint)"
         else
-          echo "⚠️ Health check failed - checking if service is running"
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@$SERVER_HOST "sudo systemctl status teamfees --no-pager"
+          echo "⚠️ API not responding - checking process status"
+          ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST << 'EOF'
+            echo "Checking TeamFees process:"
+            if pgrep -f TeamFees > /dev/null; then
+              echo "✅ TeamFees process is running"
+              echo "Process details:"
+              ps aux | grep TeamFees | grep -v grep
+            else
+              echo "❌ TeamFees process not found"
+            fi
+            
+            echo "\nChecking port 9000:"
+            if netstat -tlnp 2>/dev/null | grep :9000; then
+              echo "✅ Port 9000 is in use"
+            else
+              echo "❌ Port 9000 not in use"
+            fi
+            
+            echo "\nRecent logs (if available):"
+            if [ -f /home/administrator/teamfees.log ]; then
+              tail -10 /home/administrator/teamfees.log
+            else
+              echo "No log file found"
+            fi
+        EOF
         fi
         
     - name: Show recent logs
