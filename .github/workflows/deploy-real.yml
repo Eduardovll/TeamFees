@@ -216,7 +216,30 @@ jobs:
         SERVER_USER: ${{ secrets.SERVER_USER }}
       run: |
         echo "📋 Recent application logs:"
-        ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST "sudo journalctl -u teamfees -n 20 --no-pager"
+        ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST << 'EOF'
+          echo "Application logs:"
+          if [ -f /home/administrator/teamfees.log ]; then
+            echo "--- TeamFees Log (last 20 lines) ---"
+            tail -20 /home/administrator/teamfees.log
+          else
+            echo "No teamfees.log found"
+          fi
+          
+          echo "\n--- System logs (if accessible) ---"
+          if journalctl -u teamfees -n 10 --no-pager 2>/dev/null; then
+            echo "✅ System logs available"
+          else
+            echo "ℹ️ System logs not accessible (no sudo)"
+          fi
+          
+          echo "\n--- Process status ---"
+          if pgrep -f TeamFees > /dev/null; then
+            echo "✅ TeamFees process running"
+            ps aux | grep TeamFees | grep -v grep
+          else
+            echo "❌ TeamFees process not running"
+          fi
+        EOF
         
     - name: Deploy summary
       if: always()
