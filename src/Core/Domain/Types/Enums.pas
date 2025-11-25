@@ -1,0 +1,57 @@
+unit Enums;
+
+interface
+
+type
+  TUserRole = (urPlayer, urTreasurer, urAdmin);
+
+  TFeeStatus = (fsOpen, fsPaid, fsLate, fsCanceled);
+
+function RoleToStr(const A: TUserRole): string;
+function StrToRole(const S: string): TUserRole;
+function FeeStatusToStr(const S: TFeeStatus): string;
+function StrToFeeStatus(const S: string): TFeeStatus;
+
+implementation
+
+uses System.SysUtils;
+
+function RoleToStr(const A: TUserRole): string;
+begin
+  case A of
+    urPlayer:    Result := 'PLAYER';
+    urTreasurer: Result := 'TREASURER';
+    urAdmin:     Result := 'ADMIN';
+  end;
+end;
+
+function StrToRole(const S: string): TUserRole;
+var U: string;
+begin
+  U := UpperCase(S);
+  if U = 'ADMIN' then Exit(urAdmin);
+  if U = 'TREASURER' then Exit(urTreasurer);
+  Result := urPlayer;
+end;
+
+function FeeStatusToStr(const S: TFeeStatus): string;
+begin
+  case S of
+    fsOpen:     Result := 'OPEN';
+    fsPaid:     Result := 'PAID';
+    fsLate:     Result := 'LATE';
+    fsCanceled: Result := 'CANCELED';
+  end;
+end;
+
+function StrToFeeStatus(const S: string): TFeeStatus;
+var U: string;
+begin
+  U := UpperCase(S);
+  if U = 'PAID' then Exit(fsPaid);
+  if U = 'LATE' then Exit(fsLate);
+  if U = 'CANCELED' then Exit(fsCanceled);
+  Result := fsOpen;
+end;
+
+end.

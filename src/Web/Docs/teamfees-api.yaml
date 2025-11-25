@@ -1,0 +1,282 @@
+openapi: 3.0.0
+info:
+  title: TeamFees API
+  version: "1.0.0"
+  description: >
+    API de gestão de mensalidades de membros.
+    Permite cadastro de membros, geração e controle de mensalidades,
+    confirmação de pagamentos (PIX ou manual), e relatórios financeiros.
+
+servers:
+  - url: http://localhost:9000
+    description: Servidor local (dev)
+
+tags:
+  - name: Members
+    description: Operações relacionadas aos membros
+  - name: Fees
+    description: Operações de mensalidades
+  - name: Payments
+    description: Pagamentos e registros financeiros
+  - name: PIX
+    description: Integração com provedor de pagamento (PIX)
+
+paths:
+  /members:
+    get:
+      tags: [Members]
+      summary: Lista todos os membros ativos
+      responses:
+        '200':
+          description: Lista de membros
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Member'
+
+  /fees:
+    get:
+      tags: [Fees]
+      summary: Lista mensalidades com paginação e filtros
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Página atual
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+          description: Limite de registros por página
+        - in: query
+          name: order
+          schema:
+            type: string
+            enum: [nome, valor, vencimento, nome_desc, valor_desc, vencimento_desc]
+          description: Ordenação dos resultados
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [OPEN, PAID]
+          description: Filtra mensalidades por status
+      responses:
+        '200':
+          description: Página de mensalidades
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeePage'
+
+  /fees/summary:
+    get:
+      tags: [Fees]
+      summary: Obtém o resumo geral de mensalidades
+      responses:
+        '200':
+          description: Resumo de mensalidades
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeeSummary'
+
+  /fees/manual-set-paid:
+    post:
+      tags: [Fees]
+      summary: Marca uma mensalidade como paga manualmente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                member_fee_id:
+                  type: integer
+                  example: 3
+                amount_cents:
+                  type: integer
+                  example: 1500
+      responses:
+        '200':
+          description: Confirmação de pagamento manual
+        '409':
+          description: Mensalidade já quitada
+
+  /fees/regenerate-pix:
+    post:
+      tags: [Fees]
+      summary: Regenera o QR Code PIX para uma mensalidade
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                member_fee_id:
+                  type: integer
+                  example: 5
+      responses:
+        '200':
+          description: Dados PIX gerados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PixCharge'
+
+  /pix/webhook:
+    post:
+      tags: [PIX]
+      summary: Recebe notificação do provedor PIX
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                txid:
+                  type: string
+                valor:
+                  type: string
+      responses:
+        '200':
+          description: Processado com sucesso
+
+  /payments:
+    get:
+      tags: [Payments]
+      summary: Lista todos os pagamentos realizados
+      responses:
+        '200':
+          description: Lista de pagamentos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Payment'
+
+  /payments/{id}:
+    get:
+      tags: [Payments]
+      summary: Retorna um pagamento pelo ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Pagamento encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '404':
+          description: Pagamento não encontrado
+
+components:
+  schemas:
+    Member:
+      type: object
+      properties:
+        id:
+          type: integer
+        full_name:
+          type: string
+        email:
+          type: string
+        active:
+          type: boolean
+
+    Fee:
+      type: object
+      properties:
+        id:
+          type: integer
+        member_id:
+          type: integer
+        nome:
+          type: string
+        valor:
+          type: integer
+        status:
+          type: string
+          enum: [OPEN, PAID]
+        vencimento:
+          type: string
+          format: date-time
+
+    FeeSummary:
+      type: object
+      properties:
+        qtd_abertos:
+          type: integer
+        qtd_pagos:
+          type: integer
+        qtd_total:
+          type: integer
+        valor_abertos:
+          type: number
+        valor_pagos:
+          type: number
+        valor_total:
+          type: number
+
+    FeePage:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total_count:
+          type: integer
+        total_pages:
+          type: integer
+        has_next:
+          type: boolean
+        has_prev:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Fee'
+
+    Payment:
+      type: object
+      properties:
+        id:
+          type: integer
+        member_fee_id:
+          type: integer
+        amount_cents:
+          type: integer
+        method:
+          type: string
+        transaction_id:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        paid_at:
+          type: string
+          format: date-time
+
+    PixCharge:
+      type: object
+      properties:
+        pix_txid:
+          type: string
+        pix_provider_id:
+          type: string
+        pix_qr_code:
+          type: string

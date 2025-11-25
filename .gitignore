@@ -1,0 +1,53 @@
+# Delphi Build Files
+__history/
+__recovery/
+*.identcache
+*.dproj.local
+*.~*
+*.dsk
+*.stat
+
+# Build Outputs
+Win32/
+Win64/
+Linux64/
+OSX32/
+OSX64/
+*.exe
+*.dll
+*.so
+*.dcu
+*.o
+*.rsm
+*.map
+*.tds
+
+# Boss Dependencies
+modules/
+
+# Environment & Logs
+.env
+*.log
+logs/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+frontend/.env.production
+
+# IDE Files
+.vscode/
+.idea/
+*.code-workspace
+
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary Files
+temp/
+tmp/
+*.tmp
+*.bak

@@ -1,0 +1,51 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches: [ main, production ]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: windows-latest
+    
+    steps:
+    - name: 📥 Checkout código
+      uses: actions/checkout@v3
+    
+    - name: 🔧 Setup Delphi
+      uses: embarcadero/setup-delphi@v1
+      with:
+        delphi-version: '12.0'
+    
+    - name: 📦 Build para Linux64
+      run: |
+        msbuild TeamFees.dproj /t:Build /p:Config=Release /p:Platform=Linux64
+    
+    - name: 📤 Deploy para Oracle Cloud
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        SERVER_IP: ${{ secrets.SERVER_IP }}
+      run: |
+        # Configura SSH
+        mkdir -p ~/.ssh
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        
+        # Backup
+        ssh -i ~/.ssh/deploy_key ubuntu@$SERVER_IP "sudo cp /opt/teamfees/TeamFees /opt/teamfees/TeamFees.backup.$(date +%Y%m%d_%H%M%S)"
+        
+        # Upload
+        scp -i ~/.ssh/deploy_key Linux64/Release/TeamFees ubuntu@$SERVER_IP:/opt/teamfees/
+        scp -i ~/.ssh/deploy_key Linux64/Release/*.so ubuntu@$SERVER_IP:/opt/teamfees/
+        
+        # Restart
+        ssh -i ~/.ssh/deploy_key ubuntu@$SERVER_IP "sudo systemctl restart teamfees"
+    
+    - name: 🏥 Health Check
+      run: |
+        sleep 5
+        curl -f http://${{ secrets.SERVER_IP }}:9000/health || exit 1
+    
+    - name: ✅ Deploy concluído
+      run: echo "Deploy realizado com sucesso!"
