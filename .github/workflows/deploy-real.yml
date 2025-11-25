@@ -74,6 +74,23 @@ jobs:
           fi
         EOF
         
+    - name: Prepare server directory
+      env:
+        SERVER_HOST: ${{ secrets.SERVER_HOST }}
+        SERVER_USER: ${{ secrets.SERVER_USER }}
+      run: |
+        echo "🔧 Preparing server directory..."
+        ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST << 'EOF'
+          # Ensure home directory is writable
+          chmod 755 /home/administrator
+          
+          # Create temp directory for upload
+          mkdir -p /tmp/teamfees-deploy
+          chmod 777 /tmp/teamfees-deploy
+          
+          echo "✅ Directory prepared"
+        EOF
+        
     - name: Upload binary to server
       env:
         SERVER_HOST: ${{ secrets.SERVER_HOST }}
@@ -81,14 +98,30 @@ jobs:
       run: |
         echo "📤 Uploading binary to server..."
         
-        # Upload main binary
-        scp -o StrictHostKeyChecking=no Linux64/Release/TeamFees $SERVER_USER@$SERVER_HOST:/home/$SERVER_USER/
+        # Upload to temp directory first
+        scp -o StrictHostKeyChecking=no Linux64/Release/TeamFees $SERVER_USER@$SERVER_HOST:/tmp/teamfees-deploy/
         
         # Upload .so files if they exist
         if ls Linux64/Release/*.so 1> /dev/null 2>&1; then
-          scp -o StrictHostKeyChecking=no Linux64/Release/*.so $SERVER_USER@$SERVER_HOST:/home/$SERVER_USER/
+          scp -o StrictHostKeyChecking=no Linux64/Release/*.so $SERVER_USER@$SERVER_HOST:/tmp/teamfees-deploy/
           echo "✅ Shared libraries uploaded"
         fi
+        
+        # Move files to final location
+        ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST << 'EOF'
+          # Move binary to home directory
+          mv /tmp/teamfees-deploy/TeamFees /home/administrator/
+          
+          # Move .so files if they exist
+          if ls /tmp/teamfees-deploy/*.so 1> /dev/null 2>&1; then
+            mv /tmp/teamfees-deploy/*.so /home/administrator/
+          fi
+          
+          # Clean up temp directory
+          rm -rf /tmp/teamfees-deploy
+          
+          echo "✅ Files moved to final location"
+        EOF
         
         echo "✅ Binary uploaded successfully"
         
