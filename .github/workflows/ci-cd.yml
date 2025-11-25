@@ -75,12 +75,8 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     
     steps:
-    - name: Checkout deploy scripts
+    - name: Checkout code
       uses: actions/checkout@v4
-      with:
-        repository: ${{ github.repository_owner }}/TeamFees-Deploy
-        token: ${{ secrets.DEPLOY_TOKEN }}
-        path: deploy-scripts
         
     - name: Download Linux binary
       uses: actions/download-artifact@v4
@@ -98,15 +94,17 @@ jobs:
         SERVER_HOST: ${{ secrets.SERVER_HOST }}
         SERVER_USER: ${{ secrets.SERVER_USER }}
       run: |
+        # Tornar script executável
+        chmod +x ./deploy/scripts/linux/deploy.sh
+        
         # Copiar binário para servidor
         scp -o StrictHostKeyChecking=no ./binary/TeamFees $SERVER_USER@$SERVER_HOST:/home/$SERVER_USER/
         
-        # Executar deploy no servidor
+        # Copiar e executar script de deploy
+        scp -o StrictHostKeyChecking=no ./deploy/scripts/linux/deploy.sh $SERVER_USER@$SERVER_HOST:/tmp/
         ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST << 'EOF'
-          sudo systemctl stop teamfees
-          chmod +x /home/$SERVER_USER/TeamFees
-          sudo systemctl start teamfees
-          sudo systemctl status teamfees
+          chmod +x /tmp/deploy.sh
+          /tmp/deploy.sh
         EOF
         
     - name: Health Check
