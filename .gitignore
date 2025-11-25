@@ -22,8 +22,6 @@ OSX64/
 *.map
 *.tds
 
-# Boss Dependencies
-modules/
 
 # Environment & Logs
 .env

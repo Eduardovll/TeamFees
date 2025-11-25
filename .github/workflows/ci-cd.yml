@@ -1,0 +1,149 @@
+name: TeamFees CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  DELPHI_VERSION: "12.0"
+  POSTGRES_VERSION: "14"
+
+jobs:
+  # Job 1: Testes Frontend
+  frontend-tests:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+        
+    - name: Install dependencies
+      working-directory: ./frontend
+      run: npm ci
+      
+    - name: Run tests
+      working-directory: ./frontend
+      run: npm run test
+      
+    - name: Build frontend
+      working-directory: ./frontend
+      run: npm run build
+
+  # Job 2: Build Backend (Delphi)
+  backend-build:
+    name: Backend Build
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Delphi
+      uses: embarcadero/setup-rad-studio@v1
+      with:
+        rad-studio-version: ${{ env.DELPHI_VERSION }}
+        
+    - name: Install Boss dependencies
+      run: boss install
+      
+    - name: Build Delphi project
+      run: |
+        msbuild TeamFees.dproj /p:Configuration=Release /p:Platform=Linux64
+        
+    - name: Upload Linux binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: teamfees-linux-binary
+        path: Linux64/Release/TeamFees
+        retention-days: 30
+
+  # Job 3: Deploy (apenas em push para main)
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [frontend-tests, backend-build]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - name: Checkout deploy scripts
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ github.repository_owner }}/TeamFees-Deploy
+        token: ${{ secrets.DEPLOY_TOKEN }}
+        path: deploy-scripts
+        
+    - name: Download Linux binary
+      uses: actions/download-artifact@v4
+      with:
+        name: teamfees-linux-binary
+        path: ./binary
+        
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.8.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+        
+    - name: Deploy to server
+      env:
+        SERVER_HOST: ${{ secrets.SERVER_HOST }}
+        SERVER_USER: ${{ secrets.SERVER_USER }}
+      run: |
+        # Copiar binário para servidor
+        scp -o StrictHostKeyChecking=no ./binary/TeamFees $SERVER_USER@$SERVER_HOST:/home/$SERVER_USER/
+        
+        # Executar deploy no servidor
+        ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST << 'EOF'
+          sudo systemctl stop teamfees
+          chmod +x /home/$SERVER_USER/TeamFees
+          sudo systemctl start teamfees
+          sudo systemctl status teamfees
+        EOF
+        
+    - name: Health Check
+      env:
+        SERVER_HOST: ${{ secrets.SERVER_HOST }}
+      run: |
+        sleep 10
+        curl -f http://$SERVER_HOST:9000/health || exit 1
+        
+    - name: Notify deployment
+      if: always()
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        text: "TeamFees deployment ${{ job.status }}"
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Job 4: Security Scan
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
