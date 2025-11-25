@@ -10,17 +10,19 @@ __recovery/
 # Build Outputs
 Win32/
 Win64/
-Linux64/
+Linux64/Debug/
+Linux64/Release/*.dcu
+Linux64/Release/*.o
+Linux64/Release/*.rsm
+Linux64/Release/*.map
+Linux64/Release/*.tds
+# Keep Linux binary for deployment
+!Linux64/Release/TeamFees
+!Linux64/Release/*.so
 OSX32/
 OSX64/
 *.exe
 *.dll
-*.so
-*.dcu
-*.o
-*.rsm
-*.map
-*.tds
 
 
 # Environment & Logs

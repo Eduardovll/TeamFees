@@ -1,0 +1,174 @@
+name: TeamFees Real Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_environment:
+        description: 'Environment to deploy'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+        - production
+        - staging
+  push:
+    branches: [ main ]
+    paths:
+    - 'src/**'
+    - 'TeamFees.dpr'
+    - 'TeamFees.dproj'
+
+jobs:
+  # Job 1: Verificar se binário existe (compilado localmente)
+  check-binary:
+    name: Check Binary
+    runs-on: ubuntu-latest
+    outputs:
+      binary-exists: ${{ steps.check.outputs.exists }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Check if Linux binary exists
+      id: check
+      run: |
+        if [ -f "Linux64/Release/TeamFees" ]; then
+          echo "exists=true" >> $GITHUB_OUTPUT
+          echo "✅ Linux binary found"
+          ls -la Linux64/Release/TeamFees
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+          echo "❌ Linux binary not found"
+          echo "💡 Compile locally first: Open Delphi → Build → Linux64 Release"
+        fi
+
+  # Job 2: Deploy Real (apenas se binário existir)
+  deploy-real:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: check-binary
+    if: needs.check-binary.outputs.binary-exists == 'true'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.8.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+        
+    - name: Create backup on server
+      env:
+        SERVER_HOST: ${{ secrets.SERVER_HOST }}
+        SERVER_USER: ${{ secrets.SERVER_USER }}
+      run: |
+        echo "🔄 Creating backup on server..."
+        ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST << 'EOF'
+          if [ -f /home/administrator/TeamFees ]; then
+            sudo cp /home/administrator/TeamFees /home/administrator/TeamFees.backup.$(date +%Y%m%d_%H%M%S)
+            echo "✅ Backup created"
+          else
+            echo "ℹ️ No existing binary to backup"
+          fi
+        EOF
+        
+    - name: Upload binary to server
+      env:
+        SERVER_HOST: ${{ secrets.SERVER_HOST }}
+        SERVER_USER: ${{ secrets.SERVER_USER }}
+      run: |
+        echo "📤 Uploading binary to server..."
+        
+        # Upload main binary
+        scp -o StrictHostKeyChecking=no Linux64/Release/TeamFees $SERVER_USER@$SERVER_HOST:/home/$SERVER_USER/
+        
+        # Upload .so files if they exist
+        if ls Linux64/Release/*.so 1> /dev/null 2>&1; then
+          scp -o StrictHostKeyChecking=no Linux64/Release/*.so $SERVER_USER@$SERVER_HOST:/home/$SERVER_USER/
+          echo "✅ Shared libraries uploaded"
+        fi
+        
+        echo "✅ Binary uploaded successfully"
+        
+    - name: Set permissions and restart service
+      env:
+        SERVER_HOST: ${{ secrets.SERVER_HOST }}
+        SERVER_USER: ${{ secrets.SERVER_USER }}
+      run: |
+        echo "🔧 Setting permissions and restarting service..."
+        ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST << 'EOF'
+          # Set executable permission
+          chmod +x /home/administrator/TeamFees
+          
+          # Stop service
+          sudo systemctl stop teamfees || echo "Service not running"
+          
+          # Start service
+          sudo systemctl start teamfees
+          
+          # Check status
+          sleep 3
+          sudo systemctl status teamfees --no-pager
+        EOF
+        
+    - name: Health check
+      env:
+        SERVER_HOST: ${{ secrets.SERVER_HOST }}
+      run: |
+        echo "🏥 Performing health check..."
+        sleep 10
+        
+        # Try to connect to the API
+        if curl -f -m 30 http://$SERVER_HOST:9000/health; then
+          echo "✅ Health check passed - API is responding"
+        else
+          echo "⚠️ Health check failed - checking if service is running"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@$SERVER_HOST "sudo systemctl status teamfees --no-pager"
+        fi
+        
+    - name: Show recent logs
+      env:
+        SERVER_HOST: ${{ secrets.SERVER_HOST }}
+        SERVER_USER: ${{ secrets.SERVER_USER }}
+      run: |
+        echo "📋 Recent application logs:"
+        ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST "sudo journalctl -u teamfees -n 20 --no-pager"
+        
+    - name: Deploy summary
+      if: always()
+      run: |
+        echo "🎉 Deploy Summary:"
+        echo "=================="
+        echo "📦 Binary: Uploaded"
+        echo "🔧 Permissions: Set"
+        echo "🔄 Service: Restarted"
+        echo "🏥 Health Check: ${{ job.status }}"
+        echo "🌐 API URL: http://${{ secrets.SERVER_HOST }}:9000"
+        echo "📊 Logs: Available via journalctl"
+
+  # Job 3: Notificar se binário não existe
+  notify-missing-binary:
+    name: Notify Missing Binary
+    runs-on: ubuntu-latest
+    needs: check-binary
+    if: needs.check-binary.outputs.binary-exists == 'false'
+    
+    steps:
+    - name: Instructions for manual compilation
+      run: |
+        echo "❌ Deploy failed: Linux binary not found"
+        echo ""
+        echo "📋 To fix this:"
+        echo "1. Open Delphi IDE"
+        echo "2. Open TeamFees.dproj"
+        echo "3. Select 'Linux64' platform"
+        echo "4. Select 'Release' configuration"
+        echo "5. Press Shift+F9 to build"
+        echo "6. Commit and push the Linux64/Release/TeamFees file"
+        echo ""
+        echo "💡 Or run: msbuild TeamFees.dproj /p:Configuration=Release /p:Platform=Linux64"
+        
+        # Fail the job to make it clear
+        exit 1
