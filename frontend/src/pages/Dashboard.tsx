@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import api from '../services/api';
 import { Fee } from '../types';
-import { DollarSign, Calendar, AlertCircle, CheckCircle, TrendingUp, Clock } from 'lucide-react';
+import { DollarSign, Calendar, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function Dashboard() {

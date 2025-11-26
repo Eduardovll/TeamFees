@@ -78,11 +78,7 @@ export default function Members() {
     }
   };
 
-  const roleLabels: Record<string, string> = {
-    PLAYER: 'Jogador',
-    TREASURER: 'Tesoureiro',
-    ADMIN: 'Administrador',
-  };
+
 
   return (
     <Layout>
