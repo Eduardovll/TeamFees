@@ -6,7 +6,7 @@
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Release</Config>
         <Platform Condition="'$(Platform)'==''">Linux64</Platform>
-        <TargetedPlatforms>130</TargetedPlatforms>
+        <TargetedPlatforms>128</TargetedPlatforms>
         <AppType>Console</AppType>
         <MainSource>TeamFees.dpr</MainSource>
     </PropertyGroup>
@@ -119,10 +119,11 @@
         <DCC_DebugInformation>0</DCC_DebugInformation>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Linux64)'!=''">
-        <DCC_UnitSearchPath>C:\TeamFees\src\App;C:\TeamFees\src\Core\Domain\Entities;C:\TeamFees\src\Core\Domain\Types;C:\TeamFees\src\Core\Interfaces;C:\TeamFees\src\Core\Services;C:\TeamFees\src\Core\Utils;C:\TeamFees\src\Infra\Auth;C:\TeamFees\src\Infra\Config;C:\TeamFees\src\Infra\Logging;C:\TeamFees\src\Infra\Messaging;C:\TeamFees\src\Infra\Payment;C:\TeamFees\src\Infra\Persistence;C:\TeamFees\src\Infra\Security;C:\TeamFees\src\Web\Controllers;C:\TeamFees\src\Web\Docs;C:\TeamFees\src\Web\Middlewares;C:\TeamFees\src\Web\Server;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>C:\TeamFees-Clean\src\App;C:\TeamFees-Clean\src\Core\Domain\Entities;C:\TeamFees-Clean\src\Core\Domain\Types;C:\TeamFees-Clean\src\Core\Interfaces;C:\TeamFees-Clean\src\Core\Services;C:\TeamFees-Clean\src\Core\Utils;C:\TeamFees-Clean\src\Infra\Auth;C:\TeamFees-Clean\src\Infra\Config;C:\TeamFees-Clean\src\Infra\Logging;C:\TeamFees-Clean\src\Infra\Messaging;C:\TeamFees-Clean\src\Infra\Payment;C:\TeamFees-Clean\src\Infra\Persistence;C:\TeamFees-Clean\src\Infra\Security;C:\TeamFees-Clean\src\Web\Controllers;C:\TeamFees-Clean\src\Web\Docs;C:\TeamFees-Clean\src\Web\Middlewares;C:\TeamFees-Clean\src\Web\Server;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <Debugger_Launcher>/usr/bin/gnome-terminal -- &quot;%debuggee%&quot;</Debugger_Launcher>
         <Manifest_File>(None)</Manifest_File>
         <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
+        <DCC_ExeOutput>C:\TeamFees-Clean\Win64\Release\</DCC_ExeOutput>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
         <DCC_UnitSearchPath>C:\TeamFees\src\App;C:\TeamFees\src\Core\Domain\Entities;C:\TeamFees\src\Core\Domain\Types;C:\TeamFees\src\Core\Interfaces;C:\TeamFees\src\Core\Services;C:\TeamFees\src\Core\Utils;C:\TeamFees\src\Infra\Auth;C:\TeamFees\src\Infra\Config;C:\TeamFees\src\Infra\Logging;C:\TeamFees\src\Infra\Persistence;C:\TeamFees\src\Web\Controllers;C:\TeamFees\src\Web\Docs;C:\TeamFees\src\Web\Middlewares;C:\TeamFees\src\Web\Server;C:\TeamFees\src\Infra\Security;C:\TeamFees\src\Infra\Payment;C:\TeamFees\src\Infra\Messaging;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
@@ -1143,7 +1144,7 @@
             <Platforms>
                 <Platform value="Linux64">True</Platform>
                 <Platform value="Win32">False</Platform>
-                <Platform value="Win64">True</Platform>
+                <Platform value="Win64">False</Platform>
             </Platforms>
             <ModelSupport>False</ModelSupport>
         </BorlandProject>
