@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Sparkles, Users, Calendar, TrendingUp, 
   CheckCircle, Zap, Shield,
-  ArrowRight, MessageCircle
+  ArrowRight, MessageCircle, DollarSign
 } from 'lucide-react';
 import { tenantService } from '../services/tenantService';
 import { SignupRequest } from '../types';
