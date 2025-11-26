@@ -80,7 +80,7 @@ begin
     begin
       Writeln('=== TeamFees API Server ===');
       Writeln('Porta: 9000');
-      Writeln('Deploy automatico v2.0 funcionando!');
+      Writeln('Deploy automatico v2.0 funcionando!!');
     end
   );
 end;
