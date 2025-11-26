@@ -19,37 +19,43 @@ export default function Landing() {
       icon: Dumbbell,
       title: 'Academias & Box',
       description: 'Gerencie alunos, planos e mensalidades com facilidade',
-      gradient: 'from-orange-500 to-red-500'
+      gradient: 'from-orange-500/90 to-red-500/90',
+      image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1200&h=600&fit=crop'
     },
     {
       icon: Trophy,
       title: 'Times Esportivos',
       description: 'Controle de atletas, categorias e contribuições mensais',
-      gradient: 'from-blue-500 to-cyan-500'
+      gradient: 'from-blue-500/90 to-cyan-500/90',
+      image: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=1200&h=600&fit=crop'
     },
     {
       icon: GraduationCap,
       title: 'Escolas & Cursos',
       description: 'Gestão de alunos, turmas e pagamentos escolares',
-      gradient: 'from-green-500 to-emerald-500'
+      gradient: 'from-green-500/90 to-emerald-500/90',
+      image: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1200&h=600&fit=crop'
     },
     {
       icon: Music,
       title: 'Estúdios de Dança',
       description: 'Organize aulas, alunos e cobranças automaticamente',
-      gradient: 'from-pink-500 to-rose-500'
+      gradient: 'from-pink-500/90 to-rose-500/90',
+      image: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=1200&h=600&fit=crop'
     },
     {
       icon: Heart,
       title: 'Assessorias Esportivas',
       description: 'Acompanhe assessorados e mensalidades de treinos',
-      gradient: 'from-purple-500 to-indigo-500'
+      gradient: 'from-purple-500/90 to-indigo-500/90',
+      image: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=1200&h=600&fit=crop'
     },
     {
       icon: Building2,
       title: 'Outros Negócios',
       description: 'Qualquer negócio com pagamentos recorrentes',
-      gradient: 'from-gray-600 to-gray-800'
+      gradient: 'from-gray-600/90 to-gray-800/90',
+      image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&h=600&fit=crop'
     }
   ];
 
@@ -225,19 +231,30 @@ export default function Landing() {
             >
               {segments.map((segment, idx) => (
                 <div key={idx} className="min-w-full px-4">
-                  <div className={`bg-gradient-to-br ${segment.gradient} rounded-3xl p-12 text-white shadow-2xl`}>
-                    <div className="max-w-3xl mx-auto text-center">
-                      <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
-                        <segment.icon className="w-10 h-10" />
+                  <div className="relative rounded-3xl overflow-hidden shadow-2xl h-[400px]">
+                    {/* Background Image */}
+                    <div 
+                      className="absolute inset-0 bg-cover bg-center"
+                      style={{ backgroundImage: `url(${segment.image})` }}
+                    />
+                    {/* Gradient Overlay */}
+                    <div className={`absolute inset-0 bg-gradient-to-br ${segment.gradient}`} />
+                    
+                    {/* Content */}
+                    <div className="relative h-full flex items-center justify-center p-12">
+                      <div className="max-w-3xl mx-auto text-center text-white">
+                        <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
+                          <segment.icon className="w-10 h-10" />
+                        </div>
+                        <h3 className="text-4xl font-bold mb-4 drop-shadow-lg">{segment.title}</h3>
+                        <p className="text-xl text-white/95 mb-8 drop-shadow-md">{segment.description}</p>
+                        <button
+                          onClick={() => setShowSignup(true)}
+                          className="px-8 py-4 bg-white text-gray-900 rounded-lg font-semibold text-lg hover:bg-gray-100 transition shadow-lg inline-flex items-center gap-2"
+                        >
+                          Começar Agora <ArrowRight className="w-5 h-5" />
+                        </button>
                       </div>
-                      <h3 className="text-4xl font-bold mb-4">{segment.title}</h3>
-                      <p className="text-xl text-white/90 mb-8">{segment.description}</p>
-                      <button
-                        onClick={() => setShowSignup(true)}
-                        className="px-8 py-4 bg-white text-gray-900 rounded-lg font-semibold text-lg hover:bg-gray-100 transition shadow-lg inline-flex items-center gap-2"
-                      >
-                        Começar Agora <ArrowRight className="w-5 h-5" />
-                      </button>
                     </div>
                   </div>
                 </div>
