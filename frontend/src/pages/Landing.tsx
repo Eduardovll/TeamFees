@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Sparkles, Users, Calendar, TrendingUp, 
   CheckCircle, Zap, Shield,
-  ArrowRight, MessageCircle, DollarSign
+  ArrowRight, MessageCircle, DollarSign,
+  Dumbbell, Trophy, GraduationCap, Music, Heart, Building2
 } from 'lucide-react';
 import { tenantService } from '../services/tenantService';
 import { SignupRequest } from '../types';
@@ -11,6 +12,53 @@ import { SignupRequest } from '../types';
 export default function Landing() {
   const navigate = useNavigate();
   const [showSignup, setShowSignup] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const segments = [
+    {
+      icon: Dumbbell,
+      title: 'Academias & Box',
+      description: 'Gerencie alunos, planos e mensalidades com facilidade',
+      gradient: 'from-orange-500 to-red-500'
+    },
+    {
+      icon: Trophy,
+      title: 'Times Esportivos',
+      description: 'Controle de atletas, categorias e contribuições mensais',
+      gradient: 'from-blue-500 to-cyan-500'
+    },
+    {
+      icon: GraduationCap,
+      title: 'Escolas & Cursos',
+      description: 'Gestão de alunos, turmas e pagamentos escolares',
+      gradient: 'from-green-500 to-emerald-500'
+    },
+    {
+      icon: Music,
+      title: 'Estúdios de Dança',
+      description: 'Organize aulas, alunos e cobranças automaticamente',
+      gradient: 'from-pink-500 to-rose-500'
+    },
+    {
+      icon: Heart,
+      title: 'Assessorias Esportivas',
+      description: 'Acompanhe assessorados e mensalidades de treinos',
+      gradient: 'from-purple-500 to-indigo-500'
+    },
+    {
+      icon: Building2,
+      title: 'Outros Negócios',
+      description: 'Qualquer negócio com pagamentos recorrentes',
+      gradient: 'from-gray-600 to-gray-800'
+    }
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % segments.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <div className="min-h-screen bg-white">
@@ -154,6 +202,62 @@ export default function Landing() {
                 </p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Segments Carousel */}
+      <section className="py-20 px-4 bg-white">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Perfeito para o seu segmento
+            </h2>
+            <p className="text-xl text-gray-600">
+              Atendemos diversos tipos de negócios com pagamentos recorrentes
+            </p>
+          </div>
+
+          <div className="relative overflow-hidden">
+            <div 
+              className="flex transition-transform duration-700 ease-in-out"
+              style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+            >
+              {segments.map((segment, idx) => (
+                <div key={idx} className="min-w-full px-4">
+                  <div className={`bg-gradient-to-br ${segment.gradient} rounded-3xl p-12 text-white shadow-2xl`}>
+                    <div className="max-w-3xl mx-auto text-center">
+                      <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
+                        <segment.icon className="w-10 h-10" />
+                      </div>
+                      <h3 className="text-4xl font-bold mb-4">{segment.title}</h3>
+                      <p className="text-xl text-white/90 mb-8">{segment.description}</p>
+                      <button
+                        onClick={() => setShowSignup(true)}
+                        className="px-8 py-4 bg-white text-gray-900 rounded-lg font-semibold text-lg hover:bg-gray-100 transition shadow-lg inline-flex items-center gap-2"
+                      >
+                        Começar Agora <ArrowRight className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Indicators */}
+            <div className="flex justify-center gap-2 mt-8">
+              {segments.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentSlide(idx)}
+                  className={`h-2 rounded-full transition-all ${
+                    idx === currentSlide 
+                      ? 'w-8 bg-gradient-to-r from-indigo-600 to-purple-600' 
+                      : 'w-2 bg-gray-300 hover:bg-gray-400'
+                  }`}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </section>
