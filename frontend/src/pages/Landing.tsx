@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  DollarSign, Users, Calendar, TrendingUp, 
+  Sparkles, Users, Calendar, TrendingUp, 
   CheckCircle, Zap, Shield,
   ArrowRight, MessageCircle
 } from 'lucide-react';
@@ -17,13 +17,16 @@ export default function Landing() {
       {/* Header */}
       <header className="fixed top-0 w-full bg-white/95 backdrop-blur-sm shadow-sm z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-              <DollarSign className="w-6 h-6 text-white" />
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+              <Sparkles className="w-6 h-6 text-white" />
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              TeamFees
-            </span>
+            <div className="flex flex-col">
+              <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent leading-none">
+                ValleFy
+              </span>
+              <span className="text-xs text-gray-500 font-medium">Gestão de Mensalidades</span>
+            </div>
           </div>
           <div className="flex gap-4">
             <button 
@@ -34,7 +37,7 @@ export default function Landing() {
             </button>
             <button 
               onClick={() => setShowSignup(true)}
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition"
+              className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg font-medium transition shadow-md hover:shadow-lg"
             >
               Teste Grátis
             </button>
@@ -43,17 +46,17 @@ export default function Landing() {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+      <section className="pt-32 pb-20 px-4 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
         <div className="container mx-auto text-center max-w-4xl">
-          <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 px-4 py-2 rounded-full text-sm font-semibold mb-6 shadow-sm">
             <Zap className="w-4 h-4" />
             14 dias grátis • Sem cartão de crédito
           </div>
           
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
             Gestão de Mensalidades
-            <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Simples e Poderosa
+            <span className="block bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Simples e Inteligente
             </span>
           </h1>
           
@@ -65,7 +68,7 @@ export default function Landing() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <button 
               onClick={() => setShowSignup(true)}
-              className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-lg transition flex items-center justify-center gap-2"
+              className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg font-semibold text-lg transition flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
             >
               Começar Agora <ArrowRight className="w-5 h-5" />
             </button>
@@ -139,9 +142,9 @@ export default function Landing() {
                 description: 'Seus dados protegidos com criptografia e backups diários'
               }
             ].map((feature, idx) => (
-              <div key={idx} className="bg-white p-6 rounded-xl border-2 border-gray-100 hover:border-blue-200 hover:shadow-lg transition">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                  <feature.icon className="w-6 h-6 text-blue-600" />
+              <div key={idx} className="bg-white p-6 rounded-xl border-2 border-gray-100 hover:border-purple-200 hover:shadow-lg transition">
+                <div className="w-12 h-12 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-lg flex items-center justify-center mb-4">
+                  <feature.icon className="w-6 h-6 text-indigo-600" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
                   {feature.title}
@@ -200,8 +203,8 @@ export default function Landing() {
             </div>
 
             {/* Básico */}
-            <div className="bg-white rounded-2xl p-8 border-2 border-blue-500 relative">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
+            <div className="bg-white rounded-2xl p-8 border-2 border-purple-500 relative shadow-lg">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-md">
                 Mais Popular
               </div>
               <div className="text-center mb-6">
@@ -232,7 +235,7 @@ export default function Landing() {
               </ul>
               <button 
                 onClick={() => setShowSignup(true)}
-                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition"
+                className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg font-semibold transition shadow-md hover:shadow-lg"
               >
                 Começar Agora
               </button>
@@ -278,19 +281,19 @@ export default function Landing() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 bg-gradient-to-br from-blue-600 to-purple-600">
+      <section className="py-20 px-4 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600">
         <div className="container mx-auto max-w-4xl text-center text-white">
           <h2 className="text-4xl font-bold mb-4">
             Pronto para simplificar sua gestão?
           </h2>
-          <p className="text-xl mb-8 text-blue-100">
+          <p className="text-xl mb-8 text-indigo-100">
             Comece seu teste grátis agora. Não precisa cartão de crédito.
           </p>
           <button 
             onClick={() => setShowSignup(true)}
-            className="px-8 py-4 bg-white hover:bg-gray-100 text-blue-600 rounded-lg font-semibold text-lg transition inline-flex items-center gap-2"
+            className="px-8 py-4 bg-white hover:bg-gray-50 text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg font-bold text-lg transition inline-flex items-center gap-2 shadow-xl hover:shadow-2xl border-2 border-white"
           >
-            Começar Teste Grátis <ArrowRight className="w-5 h-5" />
+            Começar Teste Grátis <ArrowRight className="w-5 h-5 text-indigo-600" />
           </button>
         </div>
       </section>
@@ -299,13 +302,13 @@ export default function Landing() {
       <footer className="py-12 px-4 bg-gray-900 text-gray-400">
         <div className="container mx-auto max-w-6xl text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-              <DollarSign className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-white">TeamFees</span>
+            <span className="text-xl font-bold text-white">ValleFy</span>
           </div>
           <p className="mb-4">Gestão de Mensalidades Inteligente</p>
-          <p className="text-sm">© 2024 TeamFees. Desenvolvido por Eduardo Valle.</p>
+          <p className="text-sm">© 2024 ValleFy. Desenvolvido por Eduardo Valle.</p>
         </div>
       </footer>
 
