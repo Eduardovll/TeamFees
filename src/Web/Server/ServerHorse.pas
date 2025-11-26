@@ -78,9 +78,9 @@ begin
   THorse.Listen(9000,
     procedure
     begin
-      Writeln('Servidor Horse iniciado na porta 9000');
-      Writeln('http://localhost:9000/checkhorse');
-      Writeln('Deploy automatico funcionando!');
+      Writeln('=== TeamFees API Server ===');
+      Writeln('Porta: 9000');
+      Writeln('Deploy automatico v2.0 funcionando!');
     end
   );
 end;
