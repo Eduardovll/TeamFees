@@ -291,9 +291,9 @@ export default function Landing() {
           </p>
           <button 
             onClick={() => setShowSignup(true)}
-            className="px-8 py-4 bg-white hover:bg-gray-50 text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg font-bold text-lg transition inline-flex items-center gap-2 shadow-xl hover:shadow-2xl border-2 border-white"
+            className="px-8 py-4 bg-white hover:bg-gray-50 text-indigo-600 rounded-lg font-bold text-lg transition inline-flex items-center gap-2 shadow-xl hover:shadow-2xl"
           >
-            Começar Teste Grátis <ArrowRight className="w-5 h-5 text-indigo-600" />
+            Começar Teste Grátis <ArrowRight className="w-5 h-5" />
           </button>
         </div>
       </section>

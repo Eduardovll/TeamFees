@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { LogOut, User, DollarSign, Users, FileText, Settings } from 'lucide-react';
+import { LogOut, LayoutDashboard, DollarSign, Users, FileText, User, Sparkles } from 'lucide-react';
 
 interface LayoutProps {
   children: ReactNode;
@@ -17,12 +17,12 @@ export default function Layout({ children }: LayoutProps) {
   };
 
   const menuItems = [
-    { icon: User, label: 'Dashboard', path: '/dashboard', roles: ['PLAYER', 'TREASURER', 'ADMIN'] },
+    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard', roles: ['PLAYER', 'TREASURER', 'ADMIN'] },
     { icon: DollarSign, label: 'Mensalidades', path: '/my-fees', roles: ['PLAYER'] },
     { icon: DollarSign, label: 'Mensalidades', path: '/fees', roles: ['TREASURER', 'ADMIN'] },
     { icon: FileText, label: 'Pagamentos', path: '/payments', roles: ['TREASURER', 'ADMIN'] },
     { icon: Users, label: 'Membros', path: '/members', roles: ['ADMIN'] },
-    { icon: Settings, label: 'Meu Perfil', path: '/profile', roles: ['PLAYER', 'TREASURER', 'ADMIN'] },
+    { icon: User, label: 'Meu Perfil', path: '/profile', roles: ['PLAYER', 'TREASURER', 'ADMIN'] },
   ];
 
   const filteredMenu = menuItems.filter(item => 
@@ -35,7 +35,12 @@ export default function Layout({ children }: LayoutProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-blue-600">TeamFees</h1>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">ValleFy</span>
+              </div>
             </div>
             
             <div className="flex items-center space-x-4">
@@ -61,7 +66,7 @@ export default function Layout({ children }: LayoutProps) {
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition"
+                className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 hover:text-indigo-600 rounded-lg transition"
               >
                 <item.icon className="w-5 h-5" />
                 <span className="font-medium">{item.label}</span>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, Users, Shield, Zap } from 'lucide-react';
+import { Check, Users, Shield, Zap, Sparkles } from 'lucide-react';
 
 interface SignupForm {
   company_name: string;
@@ -43,7 +43,7 @@ export default function Home() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center">
         <div className="bg-white p-8 rounded-xl shadow-lg text-center max-w-md">
           <Check className="w-16 h-16 text-green-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Cadastro Realizado!</h2>
@@ -54,12 +54,17 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
       {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-blue-600">TeamFees</h1>
-          <a href="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">ValleFy</span>
+          </div>
+          <a href="/login" className="text-indigo-600 hover:text-purple-600 font-medium">
             Já tenho conta
           </a>
         </div>
@@ -71,7 +76,7 @@ export default function Home() {
           {/* Landing Content */}
           <div>
             <h1 className="text-5xl font-bold text-gray-900 mb-6">
-              Gerencie suas <span className="text-blue-600">mensalidades</span> com facilidade
+              Gerencie suas <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">mensalidades</span> com facilidade
             </h1>
             <p className="text-xl text-gray-600 mb-8">
               Plataforma completa para academias, times esportivos e escolas. 
@@ -81,15 +86,15 @@ export default function Home() {
             {/* Features */}
             <div className="space-y-4 mb-8">
               <div className="flex items-center space-x-3">
-                <Zap className="w-6 h-6 text-blue-600" />
+                <Zap className="w-6 h-6 text-indigo-600" />
                 <span className="text-gray-700">PIX automático via Mercado Pago</span>
               </div>
               <div className="flex items-center space-x-3">
-                <Users className="w-6 h-6 text-blue-600" />
+                <Users className="w-6 h-6 text-purple-600" />
                 <span className="text-gray-700">WhatsApp para cobranças</span>
               </div>
               <div className="flex items-center space-x-3">
-                <Shield className="w-6 h-6 text-blue-600" />
+                <Shield className="w-6 h-6 text-pink-600" />
                 <span className="text-gray-700">14 dias grátis, sem cartão</span>
               </div>
             </div>
@@ -98,7 +103,7 @@ export default function Home() {
             <div className="bg-white p-6 rounded-xl shadow-sm">
               <h3 className="font-bold text-gray-900 mb-4">Planos a partir de:</h3>
               <div className="flex items-baseline space-x-2">
-                <span className="text-3xl font-bold text-blue-600">R$ 49</span>
+                <span className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">R$ 49</span>
                 <span className="text-gray-600">/mês</span>
               </div>
               <p className="text-sm text-gray-500 mt-1">Até 100 membros</p>
@@ -121,7 +126,7 @@ export default function Home() {
                   required
                   value={form.company_name}
                   onChange={(e) => setForm({...form, company_name: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   placeholder="Academia Fitness Pro"
                 />
               </div>
@@ -135,7 +140,7 @@ export default function Home() {
                   required
                   value={form.owner_name}
                   onChange={(e) => setForm({...form, owner_name: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   placeholder="João Silva"
                 />
               </div>
@@ -149,7 +154,7 @@ export default function Home() {
                   required
                   value={form.email}
                   onChange={(e) => setForm({...form, email: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   placeholder="joao@academia.com"
                 />
               </div>
@@ -163,7 +168,7 @@ export default function Home() {
                   required
                   value={form.phone}
                   onChange={(e) => setForm({...form, phone: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   placeholder="(11) 99999-9999"
                 />
               </div>
@@ -175,7 +180,7 @@ export default function Home() {
                 <select
                   value={form.segment}
                   onChange={(e) => setForm({...form, segment: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 >
                   <option value="ACADEMIA">Academia</option>
                   <option value="TIME">Time Esportivo</option>
@@ -188,7 +193,7 @@ export default function Home() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition disabled:opacity-50"
+                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition disabled:opacity-50 shadow-lg hover:shadow-xl"
               >
                 {loading ? 'Cadastrando...' : 'Começar Teste Grátis'}
               </button>

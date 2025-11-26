@@ -79,8 +79,8 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <DollarSign className="w-6 h-6 text-blue-600" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center">
+                    <DollarSign className="w-6 h-6 text-indigo-600" />
                   </div>
                 </div>
                 <p className="text-sm text-gray-600 mb-1">Total de Mensalidades</p>
@@ -89,7 +89,7 @@ export default function Dashboard() {
 
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-emerald-100 rounded-xl flex items-center justify-center">
                     <CheckCircle className="w-6 h-6 text-green-600" />
                   </div>
                 </div>
@@ -100,7 +100,7 @@ export default function Dashboard() {
 
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-yellow-100 to-amber-100 rounded-xl flex items-center justify-center">
                     <Clock className="w-6 h-6 text-yellow-600" />
                   </div>
                 </div>
@@ -111,7 +111,7 @@ export default function Dashboard() {
 
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-red-100 to-rose-100 rounded-xl flex items-center justify-center">
                     <AlertCircle className="w-6 h-6 text-red-600" />
                   </div>
                 </div>
@@ -122,10 +122,10 @@ export default function Dashboard() {
 
             {/* Próxima Mensalidade */}
             {nextDue && (
-              <div className={`rounded-xl shadow-sm p-6 mb-8 ${
+              <div className={`rounded-xl shadow-lg p-6 mb-8 ${
                 isOverdue(nextDue.vencimento, nextDue.status)
-                  ? 'bg-red-50 border-2 border-red-200'
-                  : 'bg-blue-50 border-2 border-blue-200'
+                  ? 'bg-gradient-to-br from-red-50 to-rose-50 border-2 border-red-300'
+                  : 'bg-gradient-to-br from-indigo-50 to-purple-50 border-2 border-purple-300'
               }`}>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -133,10 +133,10 @@ export default function Dashboard() {
                       {isOverdue(nextDue.vencimento, nextDue.status) ? (
                         <AlertCircle className="w-5 h-5 text-red-600" />
                       ) : (
-                        <Calendar className="w-5 h-5 text-blue-600" />
+                        <Calendar className="w-5 h-5 text-indigo-600" />
                       )}
                       <h3 className={`font-semibold ${
-                        isOverdue(nextDue.vencimento, nextDue.status) ? 'text-red-900' : 'text-blue-900'
+                        isOverdue(nextDue.vencimento, nextDue.status) ? 'text-red-900' : 'text-indigo-900'
                       }`}>
                         {isOverdue(nextDue.vencimento, nextDue.status) ? 'Mensalidade Vencida!' : 'Próxima Mensalidade'}
                       </h3>
@@ -145,17 +145,17 @@ export default function Dashboard() {
                       {formatCurrency(nextDue.valor)}
                     </p>
                     <p className={`text-sm ${
-                      isOverdue(nextDue.vencimento, nextDue.status) ? 'text-red-700' : 'text-blue-700'
+                      isOverdue(nextDue.vencimento, nextDue.status) ? 'text-red-700' : 'text-indigo-700'
                     }`}>
                       Vencimento: {formatDate(nextDue.vencimento)}
                     </p>
                   </div>
                   <button
                     onClick={() => navigate('/my-fees')}
-                    className={`px-6 py-3 rounded-lg font-semibold text-white transition ${
+                    className={`px-6 py-3 rounded-lg font-semibold text-white transition shadow-md hover:shadow-lg ${
                       isOverdue(nextDue.vencimento, nextDue.status)
-                        ? 'bg-red-600 hover:bg-red-700'
-                        : 'bg-blue-600 hover:bg-blue-700'
+                        ? 'bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700'
+                        : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700'
                     }`}
                   >
                     Pagar Agora
