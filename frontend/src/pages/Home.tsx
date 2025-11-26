@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, Star, Users, Shield, Zap } from 'lucide-react';
+import { Check, Users, Shield, Zap } from 'lucide-react';
 
 interface SignupForm {
   company_name: string;

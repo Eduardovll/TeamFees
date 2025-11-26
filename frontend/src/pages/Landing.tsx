@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   DollarSign, Users, Calendar, TrendingUp, 
-  CheckCircle, Smartphone, Zap, Shield,
-  ArrowRight, Star, MessageCircle
+  CheckCircle, Zap, Shield,
+  ArrowRight, MessageCircle
 } from 'lucide-react';
 import { tenantService } from '../services/tenantService';
 import { SignupRequest } from '../types';
