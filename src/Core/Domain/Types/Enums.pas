@@ -5,7 +5,7 @@ interface
 type
   TUserRole = (urPlayer, urTreasurer, urAdmin);
 
-  TFeeStatus = (fsOpen, fsPaid, fsLate, fsCanceled);
+  TFeeStatus = (fsOpen, fsPaid, fsLate, fsCanceled, fsExempt);
 
 function RoleToStr(const A: TUserRole): string;
 function StrToRole(const S: string): TUserRole;
@@ -41,6 +41,7 @@ begin
     fsPaid:     Result := 'PAID';
     fsLate:     Result := 'LATE';
     fsCanceled: Result := 'CANCELED';
+    fsExempt:   Result := 'EXEMPT';
   end;
 end;
 
@@ -51,6 +52,7 @@ begin
   if U = 'PAID' then Exit(fsPaid);
   if U = 'LATE' then Exit(fsLate);
   if U = 'CANCELED' then Exit(fsCanceled);
+  if U = 'EXEMPT' then Exit(fsExempt);
   Result := fsOpen;
 end;
 

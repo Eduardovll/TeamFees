@@ -19,8 +19,9 @@ type
     function FindById(const Id: Integer): TMemberFee;
     function GetSummary: TJSONObject;
     function GetDebtors: TJSONArray;
-    function ListPaged(Page, Limit: Integer; Order: string; const Status: string): TJSONObject;
+    function ListPaged(Page, Limit: Integer; Order: string; const Status: string; const MemberId: Integer = 0): TJSONObject;
     function ListPagedByMember(MemberId, Page, Limit: Integer; Order: string; const Status: string): TJSONObject;
+    procedure SetExempt(const FeeId: Integer; const Reason: string);
   end;
 
 implementation

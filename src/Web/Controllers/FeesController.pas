@@ -1,4 +1,4 @@
-﻿unit FeesController;
+unit FeesController;
 
 interface
 
@@ -79,7 +79,6 @@ var
 begin
   Body := Req.Body<TJSONObject>;
   
-  // Parsear member_ids (pode ser vazio para "todos")
   MemberIdsArray := Body.GetValue<TJSONArray>('member_ids');
   if MemberIdsArray <> nil then
   begin
@@ -97,12 +96,10 @@ begin
   
   Result := FeesSvc.GenerateCustomFees(Inp);
   
-  // Montar resposta
   Response := TJSONObject.Create;
   Response.AddPair('total_created', TJSONNumber.Create(Result.TotalCreated));
   Response.AddPair('total_skipped', TJSONNumber.Create(Result.TotalSkipped));
   
-  // Array de membros que foram pulados
   SkippedArray := TJSONArray.Create;
   for I := 0 to High(Result.SkippedMembers) do
     SkippedArray.Add(Result.SkippedMembers[I]);
@@ -127,7 +124,6 @@ begin
   Res.Status(200)
      .Send(TJSONObject.Create.AddPair('message', 'Pagamento registrado com sucesso.'));
 end;
-
 
 procedure PostRegeneratePix(Req: THorseRequest; Res: THorseResponse; Next: TProc);
 var
@@ -155,7 +151,7 @@ end;
 
 procedure GetFees(Req: THorseRequest; Res: THorseResponse; Next: TProc);
 var
-  Page, Limit: Integer;
+  Page, Limit, MemberId: Integer;
   Order, Status: string;
   Data: TJSONObject;
 begin
@@ -163,13 +159,35 @@ begin
   Page := StrToIntDef(Req.Query['page'], 1);
   Limit := StrToIntDef(Req.Query['limit'], 20);
   Order := Req.Query['order'];
-  Status := Trim(Req.Query['status']).ToUpper; // "open", "paid" ou vazio
+  Status := Trim(Req.Query['status']).ToUpper;
+  MemberId := StrToIntDef(Req.Query['member_id'], 0);
 
-  if (Status <> '') and (not Status.Equals('OPEN')) and (not Status.Equals('PAID')) then
-    raise Exception.CreateFmt('Par�metro "status" inv�lido: "%s". Valores aceitos: OPEN ou PAID.', [Status]);
+  if (Status <> '') and (not Status.Equals('OPEN')) and (not Status.Equals('PAID')) and (not Status.Equals('EXEMPT')) then
+    raise Exception.CreateFmt('Parametro "status" invalido: "%s". Valores aceitos: OPEN, PAID ou EXEMPT.', [Status]);
 
-  Data := FeesSvc.ListPagedFees(Page, Limit, Order, Status);
+  Data := FeesSvc.ListPagedFees(Page, Limit, Order, Status, MemberId);
   Res.Send<TJSONObject>(Data);
+end;
+
+procedure PostSetExempt(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+var
+  Body: TJSONObject;
+  FeeId: Integer;
+  Reason: string;
+begin
+  FeeId := StrToIntDef(Req.Params['id'], 0);
+  if FeeId = 0 then
+    raise Exception.Create('ID invalido');
+    
+  Body := Req.Body<TJSONObject>;
+  Reason := Body.GetValue<string>('reason', '');
+  
+  if Reason.Trim = '' then
+    raise Exception.Create('Motivo da isencao e obrigatorio');
+    
+  FeesSvc.SetFeeExempt(FeeId, Reason);
+  
+  Res.Status(200).Send(TJSONObject.Create.AddPair('message', 'Mensalidade isenta com sucesso'));
 end;
 
 procedure GetMyFees(Req: THorseRequest; Res: THorseResponse; Next: TProc);
@@ -186,7 +204,7 @@ begin
   
   if Token = '' then
   begin
-    Res.Status(401).Send(TJSONObject.Create.AddPair('error', 'Token inválido ou ausente'));
+    Res.Status(401).Send(TJSONObject.Create.AddPair('error', 'Token invalido ou ausente'));
     Exit;
   end;
 
@@ -196,7 +214,7 @@ begin
     JWT := TJOSE.Verify(Key, Token);
     if not Assigned(JWT) then
     begin
-      Res.Status(401).Send(TJSONObject.Create.AddPair('error', 'Token inválido'));
+      Res.Status(401).Send(TJSONObject.Create.AddPair('error', 'Token invalido'));
       Exit;
     end;
     
@@ -213,7 +231,7 @@ begin
   Status := Trim(Req.Query['status']).ToUpper;
 
   if (Status <> '') and (not Status.Equals('OPEN')) and (not Status.Equals('PAID')) then
-    raise Exception.CreateFmt('Parâmetro "status" inválido: "%s". Valores aceitos: OPEN ou PAID.', [Status]);
+    raise Exception.CreateFmt('Parametro "status" invalido: "%s". Valores aceitos: OPEN ou PAID.', [Status]);
 
   Data := FeesSvc.ListMyFees(MemberIdInt, Page, Limit, Order, Status);
   Res.Send<TJSONObject>(Data);
@@ -227,7 +245,7 @@ var
 begin
   FeeId := StrToIntDef(Req.Params['id'], 0);
   if FeeId = 0 then
-    raise Exception.Create('ID inválido');
+    raise Exception.Create('ID invalido');
   
   F := FeesSvc.RegeneratePix(FeeId);
   
@@ -255,7 +273,7 @@ begin
   
   if Token = '' then
   begin
-    Res.Status(401).Send(TJSONObject.Create.AddPair('error', 'Token inválido'));
+    Res.Status(401).Send(TJSONObject.Create.AddPair('error', 'Token invalido'));
     Exit;
   end;
 
@@ -265,7 +283,7 @@ begin
     JWT := TJOSE.Verify(Key, Token);
     if not Assigned(JWT) then
     begin
-      Res.Status(401).Send(TJSONObject.Create.AddPair('error', 'Token inválido'));
+      Res.Status(401).Send(TJSONObject.Create.AddPair('error', 'Token invalido'));
       Exit;
     end;
     
@@ -277,18 +295,18 @@ begin
   
   FeeId := StrToIntDef(Req.Params['id'], 0);
   if FeeId = 0 then
-    raise Exception.Create('ID inválido');
+    raise Exception.Create('ID invalido');
   
   if not Assigned(FeesRepo) then
-    raise Exception.Create('Sistema não inicializado');
+    raise Exception.Create('Sistema nao inicializado');
   
   Fee := FeesRepo.FindById(FeeId);
   try
     if not Assigned(Fee) then
-      raise Exception.Create('Mensalidade não encontrada');
+      raise Exception.Create('Mensalidade nao encontrada');
     
     if Fee.MemberId <> MemberIdInt then
-      raise Exception.Create('Você não tem permissão para acessar esta mensalidade');
+      raise Exception.Create('Voce nao tem permissao para acessar esta mensalidade');
     
     if Fee.Status <> fsPaid then
       raise Exception.Create('Apenas mensalidades pagas podem gerar comprovante');
@@ -296,13 +314,13 @@ begin
     Member := MembersRepo.GetById(MemberIdInt);
     try
       if not Assigned(Member) then
-        raise Exception.Create('Membro não encontrado');
+        raise Exception.Create('Membro nao encontrado');
       
       Phone := Member.PhoneWhatsApp;
       FullName := Member.FullName;
       
       if Phone = '' then
-        raise Exception.Create('Telefone WhatsApp não cadastrado');
+        raise Exception.Create('Telefone WhatsApp nao cadastrado');
       
       if WhatsAppSvc.SendPaymentReceipt(Phone, FullName, FeeId, Fee.Amount.Cents, Fee.PaidAt) then
         Res.Send(TJSONObject.Create.AddPair('message', 'Comprovante enviado com sucesso!'))
@@ -318,13 +336,10 @@ end;
 
 procedure RegisterFeesRoutes(const Secret: string; Config: IHorseJWTConfig);
 begin
-
-  // ==== ROTAS PROTEGIDAS ====
-  // Rotas para PLAYER ver suas mensalidades e gerar PIX
   THorse.Get('/my-fees', GetMyFees);
   THorse.Post('/my-fees/:id/generate-pix', PostGenerateMyPix);
   THorse.Post('/my-fees/:id/send-receipt', PostSendReceipt);
-  // Rotas para TREASURER e ADMIN
+  
   THorse.Group
     .Prefix('/fees')
     .Use(TRoleGuard.Require(urTreasurer, Secret))
@@ -332,9 +347,9 @@ begin
     .Get('/summary', GetFeesSummary)
     .Post('/generate', PostGenerateCustomFees)
     .Post('/manual-set-paid', PostManualSetPaid)
-    .Post('/regenerate-pix', PostRegeneratePix);
+    .Post('/regenerate-pix', PostRegeneratePix)
+    .Post('/:id/exempt', PostSetExempt);
 
-  // Rota exclusiva para ADMIN
   THorse.Group
     .Prefix('/cycles')
     .Use(TRoleGuard.Require(urAdmin, Secret))
@@ -342,4 +357,3 @@ begin
 end;
 
 end.
-

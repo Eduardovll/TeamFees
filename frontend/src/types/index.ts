@@ -68,9 +68,10 @@ export interface Fee {
   id: number;
   nome: string;
   valor: number;
-  status: 'OPEN' | 'PAID';
+  status: 'OPEN' | 'PAID' | 'EXEMPT';
   vencimento: string;
   pago_em?: string;
+  exempt_reason?: string;
 }
 
 export interface Payment {

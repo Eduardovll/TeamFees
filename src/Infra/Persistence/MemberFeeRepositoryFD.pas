@@ -25,8 +25,9 @@ type
     function FindById(const Id: Integer): TMemberFee;
     function GetSummary: TJSONObject;
     function GetDebtors: TJSONArray;
-    function ListPaged(Page, Limit: Integer; Order: string; const Status: string): TJSONObject;
+    function ListPaged(Page, Limit: Integer; Order: string; const Status: string; const MemberId: Integer = 0): TJSONObject;
     function ListPagedByMember(MemberId, Page, Limit: Integer; Order: string; const Status: string): TJSONObject;
+    procedure SetExempt(const FeeId: Integer; const Reason: string);
   end;
 
 implementation
@@ -53,6 +54,8 @@ begin
   F.PixQrCode := Q.FieldByName('pix_qr_code').AsString;
   F.DueDate := Q.FieldByName('due_date').AsDateTime;
   F.PaidAt := Q.FieldByName('paid_at').AsDateTime;
+  if not Q.FieldByName('exempt_reason').IsNull then
+    F.ExemptReason := Q.FieldByName('exempt_reason').AsString;
   Result := F;
 end;
 
@@ -288,7 +291,7 @@ begin
   end;
 end;
 
-function TMemberFeeRepositoryFD.ListPaged(Page, Limit: Integer; Order: string; const Status: string): TJSONObject;
+function TMemberFeeRepositoryFD.ListPaged(Page, Limit: Integer; Order: string; const Status: string; const MemberId: Integer = 0): TJSONObject;
 var
   Q: TFDQuery;
   TotalQ: TFDQuery;
@@ -308,12 +311,14 @@ begin
     if Limit <= 0 then Limit := 20;
     Offset := (Page - 1) * Limit;
 
-    Q.SQL.Text := 'select f.id, f.member_id, m.full_name, f.amount_cents, f.status, f.due_date, f.paid_at ' +
+    Q.SQL.Text := 'select f.id, f.member_id, m.full_name, f.amount_cents, f.status, f.due_date, f.paid_at, f.exempt_reason ' +
                   'from member_fee f ' +
                   'join member m on m.id = f.member_id ' +
                   'where 1=1 ';
     if Status <> '' then
       Q.SQL.Add('and f.status = :status');
+    if MemberId > 0 then
+      Q.SQL.Add('and f.member_id = :member_id');
 
     if SameText(Order, 'nome_desc') then
       Q.SQL.Add('order by m.full_name desc')
@@ -335,17 +340,23 @@ begin
 
     if Status <> '' then
       Q.ParamByName('status').AsString := Status;
+    if MemberId > 0 then
+      Q.ParamByName('member_id').AsInteger := MemberId;
 
     Q.ParamByName('limit').AsInteger := Limit;
     Q.ParamByName('offset').AsInteger := Offset;
 
 
-    TotalQ.SQL.Text := 'select count(*) as total from member_fee f join member m on m.id = f.member_id ';
+    TotalQ.SQL.Text := 'select count(*) as total from member_fee f join member m on m.id = f.member_id where 1=1';
     if Status <> '' then
-      TotalQ.SQL.Add('where f.status = :status');
+      TotalQ.SQL.Add('and f.status = :status');
+    if MemberId > 0 then
+      TotalQ.SQL.Add('and f.member_id = :member_id');
 
     if Status <> '' then
       TotalQ.ParamByName('status').AsString := Status;
+    if MemberId > 0 then
+      TotalQ.ParamByName('member_id').AsInteger := MemberId;
 
     TotalQ.Open;
     TotalCount := TotalQ.FieldByName('total').AsInteger;
@@ -364,6 +375,8 @@ begin
       Obj.AddPair('vencimento', TJSONString.Create(DateToISO8601(Q.FieldByName('due_date').AsDateTime)));
       if not Q.FieldByName('paid_at').IsNull then
         Obj.AddPair('pago_em', TJSONString.Create(DateToISO8601(Q.FieldByName('paid_at').AsDateTime)));
+      if not Q.FieldByName('exempt_reason').IsNull then
+        Obj.AddPair('exempt_reason', Q.FieldByName('exempt_reason').AsString);
       Arr.AddElement(Obj);
       Q.Next;
     end;
@@ -466,4 +479,21 @@ begin
   end;
 end;
 
+procedure TMemberFeeRepositoryFD.SetExempt(const FeeId: Integer; const Reason: string);
+var Q: TFDQuery;
+begin
+  Q := TFDQuery.Create(nil);
+  try
+    Q.Connection := FConn;
+    Q.SQL.Text := 'update member_fee set status = ''EXEMPT'', exempt_reason = :reason where id = :id';
+    Q.ParamByName('reason').AsString := Reason;
+    Q.ParamByName('id').AsInteger := FeeId;
+    Q.ExecSQL;
+  finally
+    Q.Free;
+  end;
+end;
 end.
+
+
+

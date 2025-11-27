@@ -17,6 +17,7 @@ type
     FPixProviderId: string;
     FDueDate: TDateTime;
     FPaidAt: TDateTime;
+    FExemptReason: string;
   public
     property Id: Integer read FId write FId;
     property MemberId: Integer read FMemberId write FMemberId;
@@ -28,6 +29,7 @@ type
     property PixProviderId: string read FPixProviderId write FPixProviderId;
     property DueDate: TDateTime read FDueDate write FDueDate;
     property PaidAt: TDateTime read FPaidAt write FPaidAt;
+    property ExemptReason: string read FExemptReason write FExemptReason;
   end;
 
 implementation

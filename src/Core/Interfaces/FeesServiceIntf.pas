@@ -38,8 +38,9 @@ type
     procedure ManualSetPaid(const MemberFeeId: Integer; const AmountCents: Integer);
     procedure ConfirmPixWebhook(const TxId: string; const AmountCents: Integer; const Payload: string);
     function GetSummary: TJSONObject;
-    function ListPagedFees(Page, Limit: Integer; const Order, Status: string): TJSONObject;
+    function ListPagedFees(Page, Limit: Integer; const Order, Status: string; const MemberId: Integer = 0): TJSONObject;
     function ListMyFees(MemberId, Page, Limit: Integer; const Order, Status: string): TJSONObject;
+    procedure SetFeeExempt(const FeeId: Integer; const Reason: string);
   end;
 
 implementation
