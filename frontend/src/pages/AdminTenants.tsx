@@ -11,9 +11,11 @@ export default function AdminTenants() {
   const [filter, setFilter] = useState<'all' | 'active' | 'trial' | 'suspended'>('all');
   const [showEditModal, setShowEditModal] = useState(false);
   const [showRenewModal, setShowRenewModal] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
   const [editForm, setEditForm] = useState({ business_name: '', segment: '', plan: '' });
   const [renewMonths, setRenewMonths] = useState(1);
+  const [statusAction, setStatusAction] = useState<'active' | 'suspended'>('active');
 
   useEffect(() => {
     loadTenants();
@@ -30,17 +32,13 @@ export default function AdminTenants() {
     }
   };
 
-  const handleStatusChange = async (tenant: Tenant, newStatus: string) => {
-    setSelectedTenant(tenant);
-    const action = newStatus === 'active' ? 'ativar' : 'suspender';
-    
-    if (!confirm(`Tem certeza que deseja ${action} ${tenant.business_name}?`)) {
-      return;
-    }
+  const handleStatusChange = async () => {
+    if (!selectedTenant) return;
 
     try {
-      await api.put(`/admin/tenants/${tenant.id}/status`, { status: newStatus });
-      alert(`Tenant ${action === 'ativar' ? 'ativado' : 'suspenso'} com sucesso!`);
+      await api.put(`/admin/tenants/${selectedTenant.id}/status`, { status: statusAction });
+      alert(`Tenant ${statusAction === 'active' ? 'ativado' : 'suspenso'} com sucesso!`);
+      setShowStatusModal(false);
       loadTenants();
     } catch (error: any) {
       alert(error.response?.data?.error || 'Erro ao atualizar status');
@@ -302,7 +300,7 @@ export default function AdminTenants() {
                       </button>
                       {tenant.status === 'active' ? (
                         <button
-                          onClick={() => handleStatusChange(tenant, 'suspended')}
+                          onClick={() => { setSelectedTenant(tenant); setStatusAction('suspended'); setShowStatusModal(true); }}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
                           title="Suspender"
                         >
@@ -310,7 +308,7 @@ export default function AdminTenants() {
                         </button>
                       ) : (
                         <button
-                          onClick={() => handleStatusChange(tenant, 'active')}
+                          onClick={() => { setSelectedTenant(tenant); setStatusAction('active'); setShowStatusModal(true); }}
                           className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition"
                           title="Ativar"
                         >
@@ -324,6 +322,39 @@ export default function AdminTenants() {
             </tbody>
           </table>
         </div>
+
+        {/* Modal de Status */}
+        {showStatusModal && selectedTenant && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                {statusAction === 'active' ? 'Ativar' : 'Suspender'} Tenant
+              </h2>
+              <p className="text-gray-600 mb-6">
+                Tem certeza que deseja {statusAction === 'active' ? 'ativar' : 'suspender'} <strong>{selectedTenant.business_name}</strong>?
+              </p>
+
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowStatusModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleStatusChange}
+                  className={`flex-1 px-4 py-2 text-white rounded-lg transition ${
+                    statusAction === 'active'
+                      ? 'bg-green-600 hover:bg-green-700'
+                      : 'bg-red-600 hover:bg-red-700'
+                  }`}
+                >
+                  {statusAction === 'active' ? 'Ativar' : 'Suspender'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Modal de Renovação */}
         {showRenewModal && selectedTenant && (
