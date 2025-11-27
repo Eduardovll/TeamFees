@@ -78,6 +78,7 @@ begin
     M.FullName,
     RoleToStr(M.Role),
     M.Email,
+    M.TenantId,
     FCfg.JwtSecret
   );
 

@@ -29,7 +29,7 @@ type
 implementation
 
 uses
-  System.SysUtils;
+  System.SysUtils, Data.DB;
 
 constructor TMemberRepositoryFD.Create(const AConn: TFDConnection);
 begin
@@ -40,10 +40,16 @@ end;
 
 {Método central para mapear um registro do banco em TMember}
 function TMemberRepositoryFD.MapRow(Q: TFDQuery): TMember;
+var
+  TenantIdStr: string;
 begin
   Result := TMember.Create;
 
   Result.Id            := Q.FieldByName('id').AsInteger;
+  TenantIdStr := Q.FieldByName('tenant_id').AsString;
+  TenantIdStr := StringReplace(TenantIdStr, '{', '', [rfReplaceAll]);
+  TenantIdStr := StringReplace(TenantIdStr, '}', '', [rfReplaceAll]);
+  Result.TenantId      := TenantIdStr;
   Result.FullName      := Q.FieldByName('full_name').AsString;
   Result.PhoneWhatsApp := Q.FieldByName('phone_whatsapp').AsString;
   Result.Email         := Q.FieldByName('email').AsString;
@@ -64,7 +70,7 @@ begin
   try
     Q.Connection := FConn;
     Q.SQL.Text :=
-      'select id, full_name, phone_whatsapp, email, cpf, is_active, role, password_hash '+
+      'select id, tenant_id::text as tenant_id, full_name, phone_whatsapp, email, cpf, is_active, role, password_hash '+
       'from member where email = :email limit 1';
 
     Q.ParamByName('email').AsString := Email;
@@ -88,7 +94,7 @@ begin
     Q.Connection := FConn;
     Q.SQL.Text :=
       'select ' +
-      'id, full_name, phone_whatsapp, email, cpf, is_active, role, password_hash '+
+      'id, tenant_id::text as tenant_id, full_name, phone_whatsapp, email, cpf, is_active, role, password_hash '+
       'from member ' +
       'where phone_whatsapp = :phone limit 1';
 
@@ -111,7 +117,7 @@ begin
   try
     Q.Connection := FConn;
     Q.SQL.Text :=
-      'select id, full_name, phone_whatsapp, email, cpf, is_active, role, password_hash '+
+      'select id, tenant_id::text as tenant_id, full_name, phone_whatsapp, email, cpf, is_active, role, password_hash '+
       'from member where cpf = :cpf limit 1';
 
     Q.ParamByName('cpf').AsString := CPF;
@@ -135,7 +141,7 @@ begin
   try
     Q.Connection := FConn;
     Q.SQL.Text :=
-      'select id, full_name, phone_whatsapp, email, cpf, is_active, role, password_hash '+
+      'select id, tenant_id::text as tenant_id, full_name, phone_whatsapp, email, cpf, is_active, role, password_hash '+
       'from member where is_active = true';
 
     Q.Open;
@@ -163,7 +169,7 @@ begin
   try
     Q.Connection := FConn;
     Q.SQL.Text :=
-      'select id, full_name, phone_whatsapp, email, cpf, is_active, role, password_hash '+
+      'select id, tenant_id::text as tenant_id, full_name, phone_whatsapp, email, cpf, is_active, role, password_hash '+
       'from member where id = :id limit 1';
 
     Q.ParamByName('id').AsInteger := Id;
@@ -185,10 +191,11 @@ begin
   try
     Q.Connection := FConn;
     Q.SQL.Text :=
-      'INSERT INTO member (full_name, email, phone_whatsapp, cpf, role, is_active, password_hash, created_at) ' +
-      'VALUES (:full_name, :email, :phone, :cpf, :role, :is_active, :password_hash, CURRENT_TIMESTAMP) ' +
+      'INSERT INTO member (tenant_id, full_name, email, phone_whatsapp, cpf, role, is_active, password_hash, created_at) ' +
+      'VALUES (:tenant_id::uuid, :full_name, :email, :phone, :cpf, :role, :is_active, :password_hash, CURRENT_TIMESTAMP) ' +
       'RETURNING id';
 
+    Q.ParamByName('tenant_id').AsString := M.TenantId;
     Q.ParamByName('full_name').AsString := M.FullName;
     Q.ParamByName('email').AsString := M.Email;
     Q.ParamByName('phone').AsString := M.PhoneWhatsApp;

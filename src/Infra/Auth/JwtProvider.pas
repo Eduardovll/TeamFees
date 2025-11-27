@@ -18,6 +18,7 @@ type
       const FullName: string;
       const Role: string;
       const Email: string;
+      const TenantId: string;
       const Secret: string
     ): string;
   end;
@@ -29,6 +30,7 @@ class function TJwtProvider.GenerateToken(
   const FullName: string;
   const Role: string;
   const Email: string;
+  const TenantId: string;
   const Secret: string
 ): string;
 var
@@ -49,6 +51,7 @@ begin
     JWT.Claims.JSON.AddPair('full_name', FullName);
     JWT.Claims.JSON.AddPair('email', Email);
     JWT.Claims.JSON.AddPair('member_id', IntToStr(MemberId));
+    JWT.Claims.JSON.AddPair('tenant_id', LowerCase(TenantId));
 
     // Cria��o do token
     Key := TJWK.Create(Secret);

@@ -12,6 +12,14 @@ uses
   Horse.JWT,
   HorseSwaggerStatic,
   ErrorMiddleware,
+  TenantMiddleware,
+  TenantController,
+  TenantRepositoryFD,
+  TenantRepositoryIntf,
+  MemberRepositoryFD,
+  MemberRepositoryIntf,
+  FDConnectionFactory,
+  FireDAC.Comp.Client,
   FeesController,
   MemberController,
   PixController,
@@ -42,9 +50,16 @@ begin
   THorse.Use(Jhonson);
   UseErrorMiddleware;
 
-  // ==== ROTAS PÚBLICAS ====
+  // ==== ROTAS PÚBLICAS (SEM JWT E SEM TENANT) ====
   RegisterAuthRoutes;   // /auth/login e /auth/me não exigem token
   RegisterActivationRoutes;  // /activate/:token não exige token
+  
+  // Registrar rotas de tenant (signup é pública, current é protegida)
+  var Cfg2 := TAppConfig.LoadFromEnv;
+  var Conn2 := TFDConnectionFactory.CreatePostgres(Cfg2);
+  var TenantRepo := TTenantRepositoryFD.Create(Conn2);
+  var MemberRepo := TMemberRepositoryFD.Create(Conn2);
+  RegisterTenantRoutes(TenantRepo, MemberRepo);
 
   // Rota de teste - comentada
   {THorse.Get('/checkhorse',
@@ -60,15 +75,18 @@ begin
 
   // ==== JWT PROTEGE APENAS O QUE VEM DEPOIS ====
   JwtCfg := THorseJWTConfig.New;
-  JwtCfg.SkipRoutes(['/auth/login', '/auth/me', '/pix/webhook', '/activate/*']);
+  JwtCfg.SkipRoutes(['/auth/login', '/auth/me', '/pix/webhook', '/activate/*', '/tenants/signup', '/tenants/check-subdomain/*']);
   THorse.Use(
     HorseJWT(Cfg.JwtSecret, JwtCfg)
   );
   
-  RegisterMemberRoutes;     // /members (JWT obrigatório)
-  RegisterFeesRoutes(Cfg.JwtSecret, JwtCfg);       // /fees (JWT obrigatório + RoleGuard)
-  RegisterPixRoutes;        // /pix (JWT obrigatório)
-  RegisterPaymentRoutes;    // /payments (JWT obrigatório)
+  // ==== TENANT MIDDLEWARE (Isolamento de dados - APENAS ROTAS PROTEGIDAS) ====
+  THorse.Use(UseTenantMiddleware);
+  
+  RegisterMemberRoutes;     // /members (JWT + Tenant obrigatório)
+  RegisterFeesRoutes(Cfg.JwtSecret, JwtCfg);       // /fees (JWT + Tenant obrigatório + RoleGuard)
+  RegisterPixRoutes;        // /pix (JWT + Tenant obrigatório)
+  RegisterPaymentRoutes;    // /payments (JWT + Tenant obrigatório)
 
   // ==== SWAGGER ====
   UseSwaggerDocs('/swagger', SWAGGER_ROOT);

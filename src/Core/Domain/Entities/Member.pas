@@ -8,6 +8,7 @@ type
   TMember = class
   private
     FId: Integer;
+    FTenantId: string;
     FFullName: string;
     FPhoneWhatsApp: string;
     FEmail: string;
@@ -17,6 +18,7 @@ type
     FPasswordHash: string;
   public
     property Id: Integer read FId write FId;
+    property TenantId: string read FTenantId write FTenantId;
     property FullName: string read FFullName write FFullName;
     property PhoneWhatsApp: string read FPhoneWhatsApp write FPhoneWhatsApp;
     property Email: string read FEmail write FEmail;

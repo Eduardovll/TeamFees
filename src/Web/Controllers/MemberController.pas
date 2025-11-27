@@ -22,7 +22,7 @@ implementation
 uses
   RoleGuard, Enums, AppConfig, BCrypt.Provider, JOSE.Core.JWT, JOSE.Core.JWK, JOSE.Core.Builder,
   MemberInvitationRepositoryIntf, MemberInvitationRepositoryFD, EmailService, FDConnectionFactory,
-  System.DateUtils, WhatsAppServiceIntf, TwilioWhatsAppService;
+  System.DateUtils, WhatsAppServiceIntf, TwilioWhatsAppService, TenantRepositoryIntf, TenantRepositoryFD;
 
 procedure GetAllMembers(Req: THorseRequest; Res: THorseResponse; Next: TProc);
 var
@@ -30,12 +30,32 @@ var
   Arr: TJSONArray;
   M: TMember;
   Obj: TJSONObject;
+  TenantId: string;
+  JWT: TJWT;
 begin
+  JWT := Req.Session<TJWT>;
+  if JWT = nil then
+  begin
+    Res.Status(401).Send(TJSONObject.Create.AddPair('error', 'Token não encontrado'));
+    Exit;
+  end;
+  
+  TenantId := JWT.Claims.JSON.GetValue<string>('tenant_id', '');
+  if TenantId.IsEmpty then
+  begin
+    Res.Status(401).Send(TJSONObject.Create.AddPair('error', 'Tenant não identificado'));
+    Exit;
+  end;
+  
   Members := Repo.GetActive;
   Arr := TJSONArray.Create;
   try
     for M in Members do
     begin
+      // Filtrar apenas membros do tenant
+      if M.TenantId <> TenantId then
+        Continue;
+        
       Obj := TJSONObject.Create;
       Obj.AddPair('id', TJSONNumber.Create(M.Id));
       Obj.AddPair('full_name', M.FullName);
@@ -261,8 +281,36 @@ begin
   Cfg := TAppConfig.LoadFromEnv;
   Conn := TFDConnectionFactory.CreatePostgres(Cfg);
   
+  // Pega tenant_id do JWT
+  var JWT: TJWT := Req.Session<TJWT>;
+  if JWT = nil then
+  begin
+    Res.Status(401).Send(TJSONObject.Create.AddPair('error', 'Token não encontrado'));
+    Exit;
+  end;
+  
+  var TenantId := JWT.Claims.JSON.GetValue<string>('tenant_id', '');
+  if TenantId.IsEmpty then
+  begin
+    Res.Status(401).Send(TJSONObject.Create.AddPair('error', 'Tenant não identificado'));
+    Exit;
+  end;
+  
+  // Verificar limite de membros do plano
+  Cfg := TAppConfig.LoadFromEnv;
+  Conn := TFDConnectionFactory.CreatePostgres(Cfg);
+  var TenantRepo: ITenantRepository := TTenantRepositoryFD.Create(Conn);
+  
+  if not TenantRepo.CanAddMember(TenantId) then
+  begin
+    Res.Status(403).Send(TJSONObject.Create
+      .AddPair('error', 'Limite de membros atingido para seu plano. Faça upgrade para adicionar mais membros.'));
+    Exit;
+  end;
+  
   // Cria membro
   M := TMember.Create;
+  M.TenantId := LowerCase(TenantId);
   M.FullName := FullName;
   M.Email := Email;
   M.PhoneWhatsApp := Phone;

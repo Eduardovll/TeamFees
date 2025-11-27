@@ -29,8 +29,11 @@ uses
   MemberController,
   PixController,
   PaymentController,
+  TenantController,
   MercadoPagoPixProvider,
-  TwilioWhatsAppService;
+  TwilioWhatsAppService,
+  TenantRepositoryFD,
+  TenantRepositoryIntf;
 
 type
   TAppComposition = class
@@ -66,6 +69,7 @@ var
   Members: IMemberRepository;
   Fees: IMemberFeeRepository;
   Payments: IPaymentRepository;
+  Tenants: ITenantRepository;
   Pix: TMercadoPagoPixProvider;
   EnvPath: string;
 begin
@@ -84,6 +88,7 @@ begin
   Members := TMemberRepositoryFD.Create(Conn);
   Fees := TMemberFeeRepositoryFD.Create(Conn);
   Payments := TPaymentRepositoryFD.Create(Conn);
+  Tenants := TTenantRepositoryFD.Create(Conn);
   Pix := TMercadoPagoPixProvider.Create(Cfg.MercadoPagoToken);
 
   // Inje��o manual simples

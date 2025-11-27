@@ -10,10 +10,15 @@ uses
   Horse,
   System.JSON,
   System.SysUtils,
+  System.DateUtils,
   AuthService,
   MemberRepositoryFD,
+  TenantRepositoryFD,
+  TenantRepositoryIntf,
+  Tenant,
+  Enums,
   AppConfig,
-  BCrypt.Provider,        // <-- BCrypt REAL
+  BCrypt.Provider,
   FireDAC.Comp.Client,
   FDConnectionFactory,
   JOSE.Core.JWT;
@@ -49,6 +54,33 @@ begin
        .Send(TJSONObject.Create
          .AddPair('error', ResultAuth.ErrorMessage));
     Exit;
+  end;
+  
+  // Validar status e trial do tenant antes de retornar o token
+  var TenantRepo: ITenantRepository := TTenantRepositoryFD.Create(Conn);
+  var TenantObj := TenantRepo.FindById(Repo.FindByEmail(Email).TenantId);
+  
+  if TenantObj <> nil then
+  begin
+    try
+      // Verificar se tenant está ativo
+      if TenantObj.Status <> tsActive then
+      begin
+        Res.Status(403).Send(TJSONObject.Create
+          .AddPair('error', 'Conta suspensa ou cancelada. Entre em contato com o suporte.'));
+        Exit;
+      end;
+      
+      // Verificar se trial expirou
+      if (TenantObj.Plan = tpTrial) and (Now > TenantObj.TrialEndsAt) then
+      begin
+        Res.Status(403).Send(TJSONObject.Create
+          .AddPair('error', 'Período de teste expirado. Entre em contato para renovar seu plano.'));
+        Exit;
+      end;
+    finally
+      TenantObj.Free;
+    end;
   end;
 
   Res.Send(
