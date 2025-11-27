@@ -76,16 +76,17 @@ export default function Fees() {
               <span>Gerar Mensalidades</span>
             </button>
             <div className="flex items-center space-x-2">
-            <Filter className="w-5 h-5 text-gray-600" />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as any)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="ALL">Todas</option>
-              <option value="OPEN">Em Aberto</option>
-              <option value="PAID">Pagas</option>
-            </select>
+              <Filter className="w-5 h-5 text-gray-600" />
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as any)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="ALL">Todas</option>
+                <option value="OPEN">Em Aberto</option>
+                <option value="PAID">Pagas</option>
+              </select>
+            </div>
           </div>
         </div>
 
