@@ -21,8 +21,22 @@ export interface Tenant {
   plan: TenantPlan;
   status: TenantStatus;
   trial_ends_at?: string;
+  plan_expires_at?: string;
   created_at: string;
   settings?: TenantSettings;
+}
+
+export interface PlanInfo {
+  id: TenantPlan;
+  name: string;
+  price: number;
+  maxMembers: number;
+  features: string[];
+}
+
+export interface UpgradeRequest {
+  plan: TenantPlan;
+  payment_method: 'pix';
 }
 
 export interface TenantSettings {

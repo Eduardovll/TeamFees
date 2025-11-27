@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { LogOut, LayoutDashboard, DollarSign, Users, FileText, User, Sparkles, PlusCircle } from 'lucide-react';
+import { LogOut, LayoutDashboard, DollarSign, Users, FileText, User, Sparkles, PlusCircle, CreditCard, Building2 } from 'lucide-react';
 
 interface LayoutProps {
   children: ReactNode;
@@ -23,6 +23,8 @@ export default function Layout({ children }: LayoutProps) {
     { icon: PlusCircle, label: 'Gerar Mensalidades', path: '/generate-fees', roles: ['TREASURER', 'ADMIN'] },
     { icon: FileText, label: 'Pagamentos', path: '/payments', roles: ['TREASURER', 'ADMIN'] },
     { icon: Users, label: 'Membros', path: '/members', roles: ['ADMIN'] },
+    { icon: CreditCard, label: 'Planos e Cobrança', path: '/billing', roles: ['ADMIN'] },
+    { icon: Building2, label: 'Gerenciar Tenants', path: '/admin/tenants', roles: ['ADMIN'] },
     { icon: User, label: 'Meu Perfil', path: '/profile', roles: ['PLAYER', 'TREASURER', 'ADMIN'] },
   ];
 
