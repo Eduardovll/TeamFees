@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import api from '../services/api';
 import { Member } from '../types';
-import { DollarSign, Calendar, Users, CheckSquare, Square, AlertCircle, CheckCircle } from 'lucide-react';
+import { DollarSign, Calendar, CheckSquare, Square, AlertCircle, CheckCircle } from 'lucide-react';
 
 export default function GenerateFees() {
   const [members, setMembers] = useState<Member[]>([]);
