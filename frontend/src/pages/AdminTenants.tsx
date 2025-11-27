@@ -2,13 +2,16 @@ import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import api from '../services/api';
 import { Tenant } from '../types';
-import { Building2, CheckCircle, XCircle, Clock, DollarSign, Calendar } from 'lucide-react';
+import { Building2, CheckCircle, XCircle, Clock, DollarSign, Calendar, Edit, RotateCw, Power, PowerOff } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function AdminTenants() {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'active' | 'trial' | 'suspended'>('all');
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
+  const [editForm, setEditForm] = useState({ business_name: '', segment: '', plan: '' });
 
   useEffect(() => {
     loadTenants();
@@ -48,6 +51,33 @@ export default function AdminTenants() {
       loadTenants();
     } catch (error: any) {
       alert(error.response?.data?.error || 'Erro ao renovar plano');
+    }
+  };
+
+  const handleEdit = (tenant: Tenant) => {
+    setSelectedTenant(tenant);
+    setEditForm({
+      business_name: tenant.business_name,
+      segment: tenant.business_type,
+      plan: tenant.plan
+    });
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedTenant) return;
+
+    try {
+      await api.put(`/admin/tenants/${selectedTenant.id}`, {
+        business_name: editForm.business_name,
+        business_type: editForm.segment,
+        plan: editForm.plan
+      });
+      alert('Tenant atualizado com sucesso!');
+      setShowEditModal(false);
+      loadTenants();
+    } catch (error: any) {
+      alert(error.response?.data?.error || 'Erro ao atualizar tenant');
     }
   };
 
@@ -223,7 +253,7 @@ export default function AdminTenants() {
                       </div>
                       <div>
                         <div className="font-medium text-gray-900">{tenant.business_name}</div>
-                        <div className="text-sm text-gray-500">{tenant.subdomain}</div>
+                        <div className="text-sm text-gray-500">{tenant.subdomain}.vallefy.com</div>
                       </div>
                     </div>
                   </td>
@@ -241,7 +271,7 @@ export default function AdminTenants() {
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-2 text-gray-600">
                       <Calendar className="w-4 h-4" />
-                      <span className="text-sm">{formatDate(tenant.plan_expires_at || tenant.trial_ends_at)}</span>
+                      <span className="text-sm">{formatDate(tenant.trial_ends_at)}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
@@ -249,28 +279,37 @@ export default function AdminTenants() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => handleEdit(tenant)}
+                        className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
+                        title="Editar"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleRenewPlan(tenant.id)}
+                        className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition"
+                        title="Renovar Plano"
+                      >
+                        <RotateCw className="w-4 h-4" />
+                      </button>
                       {tenant.status === 'active' ? (
                         <button
                           onClick={() => handleStatusChange(tenant.id, 'suspended')}
-                          className="text-red-600 hover:text-red-800 font-medium text-sm"
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                          title="Suspender"
                         >
-                          Suspender
+                          <PowerOff className="w-4 h-4" />
                         </button>
                       ) : (
                         <button
                           onClick={() => handleStatusChange(tenant.id, 'active')}
-                          className="text-green-600 hover:text-green-800 font-medium text-sm"
+                          className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition"
+                          title="Ativar"
                         >
-                          Ativar
+                          <Power className="w-4 h-4" />
                         </button>
                       )}
-                      <span className="text-gray-300">|</span>
-                      <button
-                        onClick={() => handleRenewPlan(tenant.id)}
-                        className="text-indigo-600 hover:text-indigo-800 font-medium text-sm"
-                      >
-                        Renovar
-                      </button>
                     </div>
                   </td>
                 </tr>
@@ -278,6 +317,72 @@ export default function AdminTenants() {
             </tbody>
           </table>
         </div>
+
+        {/* Modal de Edição */}
+        {showEditModal && selectedTenant && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Editar Tenant</h2>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Nome da Empresa</label>
+                  <input
+                    type="text"
+                    value={editForm.business_name}
+                    onChange={(e) => setEditForm({ ...editForm, business_name: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de Negócio</label>
+                  <select
+                    value={editForm.segment}
+                    onChange={(e) => setEditForm({ ...editForm, segment: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="academia">Academia</option>
+                    <option value="time">Time Esportivo</option>
+                    <option value="escola">Escola</option>
+                    <option value="estudio">Estúdio</option>
+                    <option value="corrida">Assessoria de Corrida</option>
+                    <option value="outro">Outro</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Plano</label>
+                  <select
+                    value={editForm.plan}
+                    onChange={(e) => setEditForm({ ...editForm, plan: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="trial">Trial</option>
+                    <option value="basic">Básico</option>
+                    <option value="pro">Pro</option>
+                    <option value="premium">Premium</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex space-x-3 mt-6">
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleSaveEdit}
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white rounded-lg hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 transition"
+                >
+                  Salvar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );

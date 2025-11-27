@@ -1,4 +1,4 @@
-export type UserRole = 'PLAYER' | 'TREASURER' | 'ADMIN';
+export type UserRole = 'PLAYER' | 'TREASURER' | 'ADMIN' | 'SUPER_ADMIN';
 export type TenantPlan = 'trial' | 'basic' | 'pro' | 'premium';
 export type TenantStatus = 'active' | 'suspended' | 'cancelled';
 export type BusinessType = 'academia' | 'time' | 'escola' | 'estudio' | 'corrida' | 'outro';

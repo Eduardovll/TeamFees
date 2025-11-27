@@ -14,6 +14,10 @@ type
     function SubdomainExists(const ASubdomain: string): Boolean;
     function GetMemberCount(const ATenantId: string): Integer;
     function CanAddMember(const ATenantId: string): Boolean;
+    function GetAllTenants: string;
+    function UpdateTenantStatus(const ATenantId, AStatus: string): Boolean;
+    function RenewTenant(const ATenantId: string; AMonths: Integer): string;
+    function UpdateTenant(const ATenantId, ABusinessName, ABusinessType, APlan: string): Boolean;
   end;
 
 implementation

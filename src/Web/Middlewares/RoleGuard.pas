@@ -116,7 +116,7 @@ begin
           raise EHorseCallbackInterrupted.Create;
         end;
 
-        if (UserRole <> RoleToStr(Role)) and (UserRole <> 'ADMIN') then
+        if (UserRole <> RoleToStr(Role)) and (UserRole <> 'ADMIN') and (UserRole <> 'SUPER_ADMIN') then
         begin
           Res.Status(403).Send(TJSONObject.Create
             .AddPair('error', 'Forbidden')

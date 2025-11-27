@@ -13,6 +13,7 @@ uses
   HorseSwaggerStatic,
   ErrorMiddleware,
   TenantMiddleware,
+  SuperAdminGuard,
   TenantController,
   TenantRepositoryFD,
   TenantRepositoryIntf,
@@ -26,6 +27,7 @@ uses
   PaymentController,
   AuthController,
   ActivationController,
+  AdminTenantsController,
   AppConfig;
 
 type
@@ -87,6 +89,19 @@ begin
   RegisterFeesRoutes(Cfg.JwtSecret, JwtCfg);       // /fees (JWT + Tenant obrigatório + RoleGuard)
   RegisterPixRoutes;        // /pix (JWT + Tenant obrigatório)
   RegisterPaymentRoutes;    // /payments (JWT + Tenant obrigatório)
+  
+  // ==== SUPER ADMIN ROUTES (JWT + SuperAdminGuard - SEM TENANT) ====
+  var Cfg3 := TAppConfig.LoadFromEnv;
+  var Conn3 := TFDConnectionFactory.CreatePostgres(Cfg3);
+  var TenantRepo2 := TTenantRepositoryFD.Create(Conn3);
+  var AdminCtrl := TAdminTenantsController.Create(TenantRepo2);
+  
+  THorse.Group.Prefix('/admin/tenants')
+    .AddCallback(TSuperAdminGuard.Require(Cfg.JwtSecret))
+    .Get('/', AdminCtrl.GetAllTenants)
+    .Put('/:id/status', AdminCtrl.UpdateTenantStatus)
+    .Post('/:id/renew', AdminCtrl.RenewTenant)
+    .Put('/:id', AdminCtrl.UpdateTenant);
 
   // ==== SWAGGER ====
   UseSwaggerDocs('/swagger', SWAGGER_ROOT);

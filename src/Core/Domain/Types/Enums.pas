@@ -3,7 +3,7 @@ unit Enums;
 interface
 
 type
-  TUserRole = (urPlayer, urTreasurer, urAdmin);
+  TUserRole = (urPlayer, urTreasurer, urAdmin, urSuperAdmin);
 
   TFeeStatus = (fsOpen, fsPaid, fsLate, fsCanceled, fsExempt);
 
@@ -19,9 +19,10 @@ uses System.SysUtils;
 function RoleToStr(const A: TUserRole): string;
 begin
   case A of
-    urPlayer:    Result := 'PLAYER';
-    urTreasurer: Result := 'TREASURER';
-    urAdmin:     Result := 'ADMIN';
+    urPlayer:     Result := 'PLAYER';
+    urTreasurer:  Result := 'TREASURER';
+    urAdmin:      Result := 'ADMIN';
+    urSuperAdmin: Result := 'SUPER_ADMIN';
   end;
 end;
 
@@ -29,6 +30,7 @@ function StrToRole(const S: string): TUserRole;
 var U: string;
 begin
   U := UpperCase(S);
+  if U = 'SUPER_ADMIN' then Exit(urSuperAdmin);
   if U = 'ADMIN' then Exit(urAdmin);
   if U = 'TREASURER' then Exit(urTreasurer);
   Result := urPlayer;
