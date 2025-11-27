@@ -4,7 +4,7 @@ import {
   Sparkles, Users, Calendar, TrendingUp, 
   CheckCircle, Zap, Shield,
   ArrowRight, MessageCircle, DollarSign,
-  Dumbbell, Trophy, GraduationCap, Music, Heart, fights, Building2,
+  Dumbbell, Trophy, GraduationCap, Music, Heart, Swords, Building2,
   ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { tenantService } from '../services/tenantService';
@@ -38,7 +38,7 @@ export default function Landing() {
       icon: GraduationCap,
       title: 'Escolas & Cursos',
       description: 'Gestão de alunos, turmas e pagamentos escolares',
-      gradient: 'from-amber--500/90 to-emerald-500/90',
+      gradient: 'from-amber-500/90 to-emerald-500/90',
       image: 'https://images.unsplash.com/photo-1519406596751-0a3ccc4937fe?w=1200&h=600&fit=crop'
     },
     {
@@ -56,7 +56,7 @@ export default function Landing() {
       image: 'https://plus.unsplash.com/premium_photo-1664304828088-2879e58abf10?w=1200&h=600&fit=crop'
     },
     {
-      icon: fights,
+      icon: Swords,
       title: 'Fight Club',
       description: 'Mensalidades e gestão para academias de artes marciais',
       gradient: 'from-emerald-500/90 to-gray-800/90',
