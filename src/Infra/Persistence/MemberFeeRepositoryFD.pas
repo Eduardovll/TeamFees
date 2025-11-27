@@ -28,6 +28,7 @@ type
     function ListPaged(Page, Limit: Integer; Order: string; const Status: string; const MemberId: Integer = 0): TJSONObject;
     function ListPagedByMember(MemberId, Page, Limit: Integer; Order: string; const Status: string): TJSONObject;
     procedure SetExempt(const FeeId: Integer; const Reason: string);
+    procedure Delete(const FeeId: Integer);
   end;
 
 implementation
@@ -493,6 +494,21 @@ begin
     Q.Free;
   end;
 end;
+
+procedure TMemberFeeRepositoryFD.Delete(const FeeId: Integer);
+var Q: TFDQuery;
+begin
+  Q := TFDQuery.Create(nil);
+  try
+    Q.Connection := FConn;
+    Q.SQL.Text := 'delete from member_fee where id = :id';
+    Q.ParamByName('id').AsInteger := FeeId;
+    Q.ExecSQL;
+  finally
+    Q.Free;
+  end;
+end;
+
 end.
 
 

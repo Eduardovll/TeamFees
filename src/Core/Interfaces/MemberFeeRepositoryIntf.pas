@@ -22,6 +22,7 @@ type
     function ListPaged(Page, Limit: Integer; Order: string; const Status: string; const MemberId: Integer = 0): TJSONObject;
     function ListPagedByMember(MemberId, Page, Limit: Integer; Order: string; const Status: string): TJSONObject;
     procedure SetExempt(const FeeId: Integer; const Reason: string);
+    procedure Delete(const FeeId: Integer);
   end;
 
 implementation

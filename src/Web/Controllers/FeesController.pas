@@ -13,6 +13,7 @@ uses
   Enums,
   MemberFee,
   Member,
+  Money,
   MemberRepositoryIntf,
   MemberFeeRepositoryIntf,
   PaymentRepositoryIntf,
@@ -190,6 +191,68 @@ begin
   Res.Status(200).Send(TJSONObject.Create.AddPair('message', 'Mensalidade isenta com sucesso'));
 end;
 
+procedure PutUpdateFee(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+var
+  Body: TJSONObject;
+  FeeId, Valor: Integer;
+  Vencimento: string;
+  Fee: TMemberFee;
+begin
+  FeeId := StrToIntDef(Req.Params['id'], 0);
+  if FeeId = 0 then
+    raise Exception.Create('ID invalido');
+    
+  Body := Req.Body<TJSONObject>;
+  Valor := Body.GetValue<Integer>('valor', 0);
+  Vencimento := Body.GetValue<string>('vencimento', '');
+  
+  Fee := FeesRepo.FindById(FeeId);
+  try
+    if not Assigned(Fee) then
+      raise Exception.Create('Mensalidade nao encontrada');
+      
+    if Fee.Status = fsPaid then
+      raise Exception.Create('Nao e possivel editar mensalidade paga');
+      
+    if Valor > 0 then
+      Fee.Amount := TMoney.FromCents(Valor);
+      
+    if Vencimento <> '' then
+      Fee.DueDate := ParseISO8601Date(Vencimento);
+      
+    FeesRepo.Update(Fee);
+    
+    Res.Status(200).Send(TJSONObject.Create.AddPair('message', 'Mensalidade atualizada com sucesso'));
+  finally
+    Fee.Free;
+  end;
+end;
+
+procedure DeleteFee(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+var
+  FeeId: Integer;
+  Fee: TMemberFee;
+begin
+  FeeId := StrToIntDef(Req.Params['id'], 0);
+  if FeeId = 0 then
+    raise Exception.Create('ID invalido');
+    
+  Fee := FeesRepo.FindById(FeeId);
+  try
+    if not Assigned(Fee) then
+      raise Exception.Create('Mensalidade nao encontrada');
+      
+    if Fee.Status = fsPaid then
+      raise Exception.Create('Nao e possivel excluir mensalidade paga');
+      
+    FeesRepo.Delete(FeeId);
+    
+    Res.Status(200).Send(TJSONObject.Create.AddPair('message', 'Mensalidade excluida com sucesso'));
+  finally
+    Fee.Free;
+  end;
+end;
+
 procedure GetMyFees(Req: THorseRequest; Res: THorseResponse; Next: TProc);
 var
   Token: string;
@@ -348,7 +411,9 @@ begin
     .Post('/generate', PostGenerateCustomFees)
     .Post('/manual-set-paid', PostManualSetPaid)
     .Post('/regenerate-pix', PostRegeneratePix)
-    .Post('/:id/exempt', PostSetExempt);
+    .Post('/:id/exempt', PostSetExempt)
+    .Put('/:id', PutUpdateFee)
+    .Delete('/:id', DeleteFee);
 
   THorse.Group
     .Prefix('/cycles')

@@ -18,8 +18,12 @@ export default function Login() {
     setLoading(true);
 
     try {
-      await login(identifier, password);
-      navigate('/dashboard');
+      const userData = await login(identifier, password);
+      if (userData.role === 'SUPER_ADMIN') {
+        navigate('/admin/tenants');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err: any) {
       const errorMessage = err.response?.data?.error;
       if (errorMessage) {

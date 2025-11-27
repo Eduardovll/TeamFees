@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import api from '../services/api';
 import { Fee, Member } from '../types';
-import { DollarSign, Filter, Calendar, CheckCircle, Clock, PlusCircle, ShieldOff, X } from 'lucide-react';
+import { DollarSign, Filter, Calendar, CheckCircle, Clock, PlusCircle, ShieldOff, X, Edit, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 
@@ -16,8 +16,10 @@ export default function Fees() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showExemptModal, setShowExemptModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [selectedFee, setSelectedFee] = useState<Fee | null>(null);
   const [exemptReason, setExemptReason] = useState('');
+  const [editForm, setEditForm] = useState({ valor: 0, vencimento: '' });
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -79,6 +81,50 @@ export default function Fees() {
       alert(error.response?.data?.error || 'Erro ao isentar mensalidade');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleEdit = (fee: Fee) => {
+    setSelectedFee(fee);
+    setEditForm({
+      valor: fee.valor,
+      vencimento: fee.vencimento.split('T')[0]
+    });
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedFee) return;
+
+    setSubmitting(true);
+    try {
+      await api.put(`/fees/${selectedFee.id}`, editForm);
+      alert('Mensalidade atualizada com sucesso!');
+      setShowEditModal(false);
+      loadFees();
+    } catch (error: any) {
+      alert(error.response?.data?.error || 'Erro ao atualizar mensalidade');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (fee: Fee) => {
+    if (fee.status === 'PAID') {
+      alert('Não é possível excluir mensalidade paga!');
+      return;
+    }
+
+    if (!confirm(`Tem certeza que deseja excluir a mensalidade de ${fee.nome}?`)) {
+      return;
+    }
+
+    try {
+      await api.delete(`/fees/${fee.id}`);
+      alert('Mensalidade excluída com sucesso!');
+      loadFees();
+    } catch (error: any) {
+      alert(error.response?.data?.error || 'Erro ao excluir mensalidade');
     }
   };
 
@@ -226,17 +272,38 @@ export default function Fees() {
                         {getStatusBadge(fee)}
                       </td>
                       <td className="px-6 py-4">
-                        {fee.status === 'OPEN' && (
-                          <button
-                            onClick={() => {
-                              setSelectedFee(fee);
-                              setShowExemptModal(true);
-                            }}
-                            className="text-purple-600 hover:text-purple-800 font-medium text-sm"
-                          >
-                            Isentar
-                          </button>
-                        )}
+                        <div className="flex items-center space-x-2">
+                          {fee.status !== 'PAID' && (
+                            <>
+                              <button
+                                onClick={() => handleEdit(fee)}
+                                className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
+                                title="Editar"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(fee)}
+                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                                title="Excluir"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
+                          {fee.status === 'OPEN' && (
+                            <button
+                              onClick={() => {
+                                setSelectedFee(fee);
+                                setShowExemptModal(true);
+                              }}
+                              className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition"
+                              title="Isentar"
+                            >
+                              <ShieldOff className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -268,6 +335,65 @@ export default function Fees() {
           </>
         )}
       </div>
+
+      {/* Modal de Edição */}
+      {showEditModal && selectedFee && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
+            <div className="flex justify-between items-start mb-4">
+              <h2 className="text-2xl font-bold text-gray-900">Editar Mensalidade</h2>
+              <button onClick={() => setShowEditModal(false)} className="text-gray-400 hover:text-gray-600">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 mb-4">
+                <strong>Membro:</strong> {selectedFee.nome}
+              </p>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Valor (em centavos)</label>
+                  <input
+                    type="number"
+                    value={editForm.valor}
+                    onChange={(e) => setEditForm({ ...editForm, valor: parseInt(e.target.value) })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">{formatCurrency(editForm.valor)}</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Vencimento</label>
+                  <input
+                    type="date"
+                    value={editForm.vencimento}
+                    onChange={(e) => setEditForm({ ...editForm, vencimento: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                disabled={submitting}
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition disabled:opacity-50"
+              >
+                {submitting ? 'Salvando...' : 'Salvar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal de Isenção */}
       {showExemptModal && selectedFee && (
