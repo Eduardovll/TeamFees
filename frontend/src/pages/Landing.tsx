@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Sparkles, Users, Calendar, TrendingUp, 
   CheckCircle, Zap, Shield,
   ArrowRight, MessageCircle, DollarSign,
-  Dumbbell, Trophy, GraduationCap, Music, Heart, Building2
+  Dumbbell, Trophy, GraduationCap, Music, Heart, fights, Building2,
+  ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { tenantService } from '../services/tenantService';
 import { SignupRequest } from '../types';
@@ -13,11 +14,15 @@ export default function Landing() {
   const navigate = useNavigate();
   const [showSignup, setShowSignup] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [translateX, setTranslateX] = useState(0);
+  const carouselRef = useRef<HTMLDivElement>(null);
 
   const segments = [
     {
       icon: Dumbbell,
-      title: 'Academias & Box',
+      title: 'Academias',
       description: 'Gerencie alunos, planos e mensalidades com facilidade',
       gradient: 'from-orange-500/90 to-red-500/90',
       image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1200&h=600&fit=crop'
@@ -27,28 +32,35 @@ export default function Landing() {
       title: 'Times Esportivos',
       description: 'Controle de atletas, categorias e contribuições mensais',
       gradient: 'from-blue-500/90 to-cyan-500/90',
-      image: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=1200&h=600&fit=crop'
+      image: 'https://images.unsplash.com/photo-1494177310973-4841f7d5a882?w=1200&h=600&fit=crop'
     },
     {
       icon: GraduationCap,
       title: 'Escolas & Cursos',
       description: 'Gestão de alunos, turmas e pagamentos escolares',
-      gradient: 'from-green-500/90 to-emerald-500/90',
-      image: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1200&h=600&fit=crop'
+      gradient: 'from-amber--500/90 to-emerald-500/90',
+      image: 'https://images.unsplash.com/photo-1519406596751-0a3ccc4937fe?w=1200&h=600&fit=crop'
     },
     {
       icon: Music,
       title: 'Estúdios de Dança',
       description: 'Organize aulas, alunos e cobranças automaticamente',
-      gradient: 'from-pink-500/90 to-rose-500/90',
-      image: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=1200&h=600&fit=crop'
+      gradient: 'from-rose-500/90 to-rose-500/90',
+      image: 'https://plus.unsplash.com/premium_photo-1723568454844-27831f955a89?w=1200&h=600&fit=crop'
     },
     {
       icon: Heart,
       title: 'Assessorias Esportivas',
       description: 'Acompanhe assessorados e mensalidades de treinos',
       gradient: 'from-purple-500/90 to-indigo-500/90',
-      image: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=1200&h=600&fit=crop'
+      image: 'https://plus.unsplash.com/premium_photo-1664304828088-2879e58abf10?w=1200&h=600&fit=crop'
+    },
+    {
+      icon: fights,
+      title: 'Fight Club',
+      description: 'Mensalidades e gestão para academias de artes marciais',
+      gradient: 'from-emerald-500/90 to-gray-800/90',
+      image: 'https://plus.unsplash.com/premium_photo-1661670985697-7542712087ae?w=1200&h=600&fit=crop'
     },
     {
       icon: Building2,
@@ -61,10 +73,46 @@ export default function Landing() {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % segments.length);
+      if (!isDragging) {
+        setCurrentSlide((prev) => (prev + 1) % segments.length);
+      }
     }, 4000);
     return () => clearInterval(timer);
-  }, []);
+  }, [isDragging]);
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % segments.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + segments.length) % segments.length);
+  };
+
+  const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+    setIsDragging(true);
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    setStartX(clientX);
+  };
+
+  const handleDragMove = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isDragging) return;
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const diff = clientX - startX;
+    setTranslateX(diff);
+  };
+
+  const handleDragEnd = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    
+    if (translateX > 100) {
+      prevSlide();
+    } else if (translateX < -100) {
+      nextSlide();
+    }
+    
+    setTranslateX(0);
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -225,9 +273,34 @@ export default function Landing() {
           </div>
 
           <div className="relative overflow-hidden">
+            {/* Navigation Buttons */}
+            <button
+              onClick={prevSlide}
+              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition"
+            >
+              <ChevronLeft className="w-6 h-6 text-gray-800" />
+            </button>
+            <button
+              onClick={nextSlide}
+              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition"
+            >
+              <ChevronRight className="w-6 h-6 text-gray-800" />
+            </button>
+
             <div 
-              className="flex transition-transform duration-700 ease-in-out"
-              style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+              ref={carouselRef}
+              className="flex transition-transform duration-700 ease-in-out cursor-grab active:cursor-grabbing"
+              style={{ 
+                transform: `translateX(calc(-${currentSlide * 100}% + ${translateX}px))`,
+                transition: isDragging ? 'none' : 'transform 0.7s ease-in-out'
+              }}
+              onMouseDown={handleDragStart}
+              onMouseMove={handleDragMove}
+              onMouseUp={handleDragEnd}
+              onMouseLeave={handleDragEnd}
+              onTouchStart={handleDragStart}
+              onTouchMove={handleDragMove}
+              onTouchEnd={handleDragEnd}
             >
               {segments.map((segment, idx) => (
                 <div key={idx} className="min-w-full px-4">
