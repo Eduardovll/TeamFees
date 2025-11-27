@@ -31,7 +31,7 @@ export default function Landing() {
       icon: Trophy,
       title: 'Times Esportivos',
       description: 'Controle de atletas, categorias e contribuições mensais',
-      gradient: 'from-blue-500/90 to-cyan-500/90',
+      gradient: 'from-indigo-500/90 to-cyan-600/90',
       image: 'https://images.unsplash.com/photo-1494177310973-4841f7d5a882?w=1200&h=600&fit=crop'
     },
     {
