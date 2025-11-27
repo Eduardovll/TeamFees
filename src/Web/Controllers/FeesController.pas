@@ -6,6 +6,7 @@ uses
   Horse,
   Horse.JWT,
   System.SysUtils,
+  System.DateUtils,
   System.JSON,
   FeesServiceIntf,
   FeesService,
@@ -35,6 +36,16 @@ procedure RegisterFeesRoutes(const Secret: string; Config: IHorseJWTConfig);
 
 implementation
 
+function ParseISO8601Date(const DateStr: string): TDateTime;
+var
+  Year, Month, Day: Word;
+begin
+  Year := StrToInt(Copy(DateStr, 1, 4));
+  Month := StrToInt(Copy(DateStr, 6, 2));
+  Day := StrToInt(Copy(DateStr, 9, 2));
+  Result := EncodeDate(Year, Month, Day);
+end;
+
 procedure PostGenerateCycle(Req: THorseRequest; Res: THorseResponse; Next: TProc);
 var
   Body: TJSONObject;
@@ -54,6 +65,52 @@ begin
       .AddPair('cycle_id', TJSONNumber.Create(CycleId))
       .AddPair('message', 'Ciclo gerado com sucesso!')
   );
+end;
+
+procedure PostGenerateCustomFees(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+var
+  Body: TJSONObject;
+  Inp: TGenerateCustomFeesInput;
+  Result: TGenerateCustomFeesResult;
+  MemberIdsArray: TJSONArray;
+  I: Integer;
+  SkippedArray: TJSONArray;
+  Response: TJSONObject;
+begin
+  Body := Req.Body<TJSONObject>;
+  
+  // Parsear member_ids (pode ser vazio para "todos")
+  MemberIdsArray := Body.GetValue<TJSONArray>('member_ids');
+  if MemberIdsArray <> nil then
+  begin
+    SetLength(Inp.MemberIds, MemberIdsArray.Count);
+    for I := 0 to MemberIdsArray.Count - 1 do
+      Inp.MemberIds[I] := MemberIdsArray.Items[I].GetValue<Integer>();
+  end
+  else
+    SetLength(Inp.MemberIds, 0);
+  
+  Inp.AmountCents := Body.GetValue<Integer>('amount_cents');
+  Inp.DueDate := ParseISO8601Date(Body.GetValue<string>('due_date'));
+  Inp.Reference := Body.GetValue<string>('reference', '');
+  Inp.MonthsCount := Body.GetValue<Integer>('months_count', 1);
+  
+  Result := FeesSvc.GenerateCustomFees(Inp);
+  
+  // Montar resposta
+  Response := TJSONObject.Create;
+  Response.AddPair('total_created', TJSONNumber.Create(Result.TotalCreated));
+  Response.AddPair('total_skipped', TJSONNumber.Create(Result.TotalSkipped));
+  
+  // Array de membros que foram pulados
+  SkippedArray := TJSONArray.Create;
+  for I := 0 to High(Result.SkippedMembers) do
+    SkippedArray.Add(Result.SkippedMembers[I]);
+  Response.AddPair('skipped_members', SkippedArray);
+  
+  Response.AddPair('message', Format('%d mensalidades criadas com sucesso!', [Result.TotalCreated]));
+  
+  Res.Status(201).Send(Response);
 end;
 
 procedure PostManualSetPaid(Req: THorseRequest; Res: THorseResponse; Next: TProc);
@@ -273,6 +330,7 @@ begin
     .Use(TRoleGuard.Require(urTreasurer, Secret))
     .Get('', GetFees)
     .Get('/summary', GetFeesSummary)
+    .Post('/generate', PostGenerateCustomFees)
     .Post('/manual-set-paid', PostManualSetPaid)
     .Post('/regenerate-pix', PostRegeneratePix);
 

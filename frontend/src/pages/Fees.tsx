@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import api from '../services/api';
 import { Fee } from '../types';
-import { DollarSign, Filter, Calendar, CheckCircle, Clock } from 'lucide-react';
+import { DollarSign, Filter, Calendar, CheckCircle, Clock, PlusCircle } from 'lucide-react';
 import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 export default function Fees() {
+  const navigate = useNavigate();
   const [fees, setFees] = useState<Fee[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'OPEN' | 'PAID'>('ALL');
@@ -65,7 +67,15 @@ export default function Fees() {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Mensalidades</h1>
           
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => navigate('/generate-fees')}
+              className="flex items-center space-x-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 text-white font-semibold px-6 py-3 rounded-lg transition shadow-lg hover:shadow-xl"
+            >
+              <PlusCircle className="w-5 h-5" />
+              <span>Gerar Mensalidades</span>
+            </button>
+            <div className="flex items-center space-x-2">
             <Filter className="w-5 h-5 text-gray-600" />
             <select
               value={statusFilter}

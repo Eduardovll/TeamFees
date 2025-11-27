@@ -31,6 +31,7 @@ type
     constructor Create(const AMembers: IMemberRepository; const AFees: IMemberFeeRepository;
                        const APayments: IPaymentRepository; const AUoW: IUnitOfWork; const APix: IPixProvider);
     function GenerateCycle(const Input: TGenerateCycleInput): Integer;
+    function GenerateCustomFees(const Input: TGenerateCustomFeesInput): TGenerateCustomFeesResult;
     function RegeneratePix(const MemberFeeId: Integer): TMemberFee;
     procedure ManualSetPaid(const MemberFeeId: Integer; const AmountCents: Integer);
     procedure ConfirmPixWebhook(const TxId: string; const AmountCents: Integer; const Payload: string);
@@ -102,6 +103,99 @@ begin
   end;
 
   Result := CycleId;
+end;
+
+function TFeesService.GenerateCustomFees(const Input: TGenerateCustomFeesInput): TGenerateCustomFeesResult;
+var
+  Members: TObjectList<TMember>;
+  M: TMember;
+  Fee, ExistingFee: TMemberFee;
+  CurrentDueDate: TDateTime;
+  CurrentYear, CurrentMonth, DayDummy: Word;
+  CycleId: Integer;
+  MonthIndex, I: Integer;
+  SkippedList: TList<string>;
+begin
+  Result.TotalCreated := 0;
+  Result.TotalSkipped := 0;
+  SetLength(Result.SkippedMembers, 0);
+  
+  SkippedList := TList<string>.Create;
+  try
+    // Buscar membros
+    if Length(Input.MemberIds) = 0 then
+      Members := FMembers.GetActive  // Todos os membros ativos
+    else
+    begin
+      // Membros específicos
+      Members := TObjectList<TMember>.Create(True);
+      for I := 0 to High(Input.MemberIds) do
+      begin
+        M := FMembers.GetById(Input.MemberIds[I]);
+        if M <> nil then
+          Members.Add(M);
+      end;
+    end;
+    
+    try
+      FUoW.BeginTran;
+      
+      // Gerar para cada mês
+      for MonthIndex := 0 to Input.MonthsCount - 1 do
+      begin
+        // Calcular data de vencimento do mês atual
+        CurrentDueDate := IncMonth(Input.DueDate, MonthIndex);
+        DecodeDate(CurrentDueDate, CurrentYear, CurrentMonth, DayDummy);
+        CycleId := (CurrentYear * 100) + CurrentMonth;
+        
+        // Gerar para cada membro
+        for M in Members do
+        begin
+          // Verificar se já existe mensalidade para este membro neste ciclo
+          ExistingFee := FFees.GetByMemberAndCycle(M.Id, CycleId);
+          
+          if ExistingFee = nil then
+          begin
+            // Criar nova mensalidade
+            Fee := TMemberFee.Create;
+            Fee.MemberId := M.Id;
+            Fee.CycleId := CycleId;
+            Fee.Amount := TMoney.FromCents(Input.AmountCents);
+            Fee.Status := fsOpen;
+            Fee.DueDate := CurrentDueDate;
+            Fee.PaidAt := 0;
+            Fee.PixTxId := '';
+            Fee.PixProviderId := '';
+            Fee.PixQrCode := '';
+            
+            FFees.Add(Fee);
+            Inc(Result.TotalCreated);
+          end
+          else
+          begin
+            // Já existe - adicionar ao log
+            if SkippedList.IndexOf(M.FullName) = -1 then
+              SkippedList.Add(M.FullName);
+            Inc(Result.TotalSkipped);
+          end;
+        end;
+      end;
+      
+      FUoW.Commit;
+      
+      // Converter lista de skipped para array
+      SetLength(Result.SkippedMembers, SkippedList.Count);
+      for I := 0 to SkippedList.Count - 1 do
+        Result.SkippedMembers[I] := SkippedList[I];
+        
+    except
+      FUoW.Rollback;
+      raise;
+    end;
+  finally
+    SkippedList.Free;
+    Members.Free;
+  end;
 end;
 
 function TFeesService.GetSummary: TJSONObject;

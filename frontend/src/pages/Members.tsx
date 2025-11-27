@@ -87,7 +87,7 @@ export default function Members() {
           <h1 className="text-3xl font-bold text-gray-900">Membros</h1>
           <button
             onClick={() => setShowModal(true)}
-            className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition"
+            className="flex items-center space-x-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 text-white font-semibold px-6 py-3 rounded-lg transition shadow-lg hover:shadow-xl"
           >
             <UserPlus className="w-5 h-5" />
             <span>Novo Membro</span>
@@ -253,8 +253,8 @@ export default function Members() {
                 </select>
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-xs text-blue-700">
+              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-purple-200 rounded-lg p-3">
+                <p className="text-xs text-indigo-700">
                   <strong>🔑 Senha inicial:</strong> Últimos 6 dígitos do CPF.
                   {formData.phone && ' Credenciais serão enviadas via WhatsApp.'}
                 </p>
@@ -287,7 +287,7 @@ export default function Members() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition disabled:opacity-50"
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 text-white rounded-lg transition disabled:opacity-50 shadow-lg hover:shadow-xl"
                 >
                   {submitting ? 'Criando...' : 'Criar Membro'}
                 </button>

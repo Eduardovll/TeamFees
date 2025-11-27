@@ -9,6 +9,7 @@ import Payments from './pages/Payments';
 import Members from './pages/Members';
 import Profile from './pages/Profile';
 import Activate from './pages/Activate';
+import GenerateFees from './pages/GenerateFees';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -58,6 +59,11 @@ function App() {
           <Route path="/profile" element={
             <PrivateRoute>
               <Profile />
+            </PrivateRoute>
+          } />
+          <Route path="/generate-fees" element={
+            <PrivateRoute>
+              <GenerateFees />
             </PrivateRoute>
           } />
         </Routes>
