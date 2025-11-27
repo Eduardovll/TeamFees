@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import api from '../services/api';
 import { Tenant } from '../types';
-import { Building2, CheckCircle, XCircle, Clock, Users, DollarSign, Calendar } from 'lucide-react';
+import { Building2, CheckCircle, XCircle, Clock, DollarSign, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function AdminTenants() {
