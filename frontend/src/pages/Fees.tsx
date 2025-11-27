@@ -78,7 +78,7 @@ export default function Fees() {
       setSelectedFee(null);
       loadFees();
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Erro ao isentar mensalidade');
+      console.error('Erro ao isentar mensalidade:', error);
     } finally {
       setSubmitting(false);
     }
@@ -102,11 +102,10 @@ export default function Fees() {
         valor: Math.round(editForm.valor * 100),
         vencimento: editForm.vencimento
       });
-      alert('Mensalidade atualizada com sucesso!');
       setShowEditModal(false);
       loadFees();
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Erro ao atualizar mensalidade');
+      console.error('Erro ao atualizar mensalidade:', error);
     } finally {
       setSubmitting(false);
     }
@@ -114,7 +113,6 @@ export default function Fees() {
 
   const handleDelete = async (fee: Fee) => {
     if (fee.status === 'PAID') {
-      alert('Não é possível excluir mensalidade paga!');
       return;
     }
 
@@ -124,10 +122,9 @@ export default function Fees() {
 
     try {
       await api.delete(`/fees/${fee.id}`);
-      alert('Mensalidade excluída com sucesso!');
       loadFees();
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Erro ao excluir mensalidade');
+      console.error('Erro ao excluir mensalidade:', error);
     }
   };
 

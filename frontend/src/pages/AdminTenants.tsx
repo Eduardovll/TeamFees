@@ -37,11 +37,10 @@ export default function AdminTenants() {
 
     try {
       await api.put(`/admin/tenants/${selectedTenant.id}/status`, { status: statusAction });
-      alert(`Tenant ${statusAction === 'active' ? 'ativado' : 'suspenso'} com sucesso!`);
       setShowStatusModal(false);
       loadTenants();
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Erro ao atualizar status');
+      console.error('Erro ao atualizar status:', error);
     }
   };
 
@@ -50,12 +49,11 @@ export default function AdminTenants() {
 
     try {
       await api.post(`/admin/tenants/${selectedTenant.id}/renew`, { months: renewMonths });
-      alert('Plano renovado com sucesso!');
       setShowRenewModal(false);
       setRenewMonths(1);
       loadTenants();
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Erro ao renovar plano');
+      console.error('Erro ao renovar plano:', error);
     }
   };
 
@@ -78,11 +76,10 @@ export default function AdminTenants() {
         business_type: editForm.segment,
         plan: editForm.plan
       });
-      alert('Tenant atualizado com sucesso!');
       setShowEditModal(false);
       loadTenants();
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Erro ao atualizar tenant');
+      console.error('Erro ao atualizar tenant:', error);
     }
   };
 
