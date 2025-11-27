@@ -10,8 +10,10 @@ export default function AdminTenants() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'active' | 'trial' | 'suspended'>('all');
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showRenewModal, setShowRenewModal] = useState(false);
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
   const [editForm, setEditForm] = useState({ business_name: '', segment: '', plan: '' });
+  const [renewMonths, setRenewMonths] = useState(1);
 
   useEffect(() => {
     loadTenants();
@@ -28,26 +30,31 @@ export default function AdminTenants() {
     }
   };
 
-  const handleStatusChange = async (tenantId: string, newStatus: string) => {
-    if (!confirm(`Tem certeza que deseja ${newStatus === 'active' ? 'ativar' : 'suspender'} este tenant?`)) {
+  const handleStatusChange = async (tenant: Tenant, newStatus: string) => {
+    setSelectedTenant(tenant);
+    const action = newStatus === 'active' ? 'ativar' : 'suspender';
+    
+    if (!confirm(`Tem certeza que deseja ${action} ${tenant.business_name}?`)) {
       return;
     }
 
     try {
-      await api.put(`/admin/tenants/${tenantId}/status`, { status: newStatus });
+      await api.put(`/admin/tenants/${tenant.id}/status`, { status: newStatus });
+      alert(`Tenant ${action === 'ativar' ? 'ativado' : 'suspenso'} com sucesso!`);
       loadTenants();
     } catch (error: any) {
       alert(error.response?.data?.error || 'Erro ao atualizar status');
     }
   };
 
-  const handleRenewPlan = async (tenantId: string) => {
-    const months = prompt('Quantos meses deseja renovar?', '1');
-    if (!months) return;
+  const handleRenewPlan = async () => {
+    if (!selectedTenant) return;
 
     try {
-      await api.post(`/admin/tenants/${tenantId}/renew`, { months: parseInt(months) });
+      await api.post(`/admin/tenants/${selectedTenant.id}/renew`, { months: renewMonths });
       alert('Plano renovado com sucesso!');
+      setShowRenewModal(false);
+      setRenewMonths(1);
       loadTenants();
     } catch (error: any) {
       alert(error.response?.data?.error || 'Erro ao renovar plano');
@@ -287,7 +294,7 @@ export default function AdminTenants() {
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => handleRenewPlan(tenant.id)}
+                        onClick={() => { setSelectedTenant(tenant); setShowRenewModal(true); }}
                         className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition"
                         title="Renovar Plano"
                       >
@@ -295,7 +302,7 @@ export default function AdminTenants() {
                       </button>
                       {tenant.status === 'active' ? (
                         <button
-                          onClick={() => handleStatusChange(tenant.id, 'suspended')}
+                          onClick={() => handleStatusChange(tenant, 'suspended')}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
                           title="Suspender"
                         >
@@ -303,7 +310,7 @@ export default function AdminTenants() {
                         </button>
                       ) : (
                         <button
-                          onClick={() => handleStatusChange(tenant.id, 'active')}
+                          onClick={() => handleStatusChange(tenant, 'active')}
                           className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition"
                           title="Ativar"
                         >
@@ -317,6 +324,45 @@ export default function AdminTenants() {
             </tbody>
           </table>
         </div>
+
+        {/* Modal de Renovação */}
+        {showRenewModal && selectedTenant && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Renovar Plano</h2>
+              <p className="text-gray-600 mb-6">{selectedTenant.business_name}</p>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Quantos meses?</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="12"
+                    value={renewMonths}
+                    onChange={(e) => setRenewMonths(parseInt(e.target.value))}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex space-x-3 mt-6">
+                <button
+                  onClick={() => { setShowRenewModal(false); setRenewMonths(1); }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleRenewPlan}
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition"
+                >
+                  Renovar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Modal de Edição */}
         {showEditModal && selectedTenant && (
