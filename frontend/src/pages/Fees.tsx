@@ -5,9 +5,15 @@ import { Fee, Member } from '../types';
 import { DollarSign, Filter, Calendar, CheckCircle, Clock, PlusCircle, ShieldOff, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Fees() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  
+  useEffect(() => {
+    console.log('User role:', user?.role);
+  }, [user]);
   const [fees, setFees] = useState<Fee[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,7 +50,9 @@ export default function Fees() {
       if (statusFilter !== 'ALL') params.status = statusFilter;
       if (memberFilter > 0) params.member_id = memberFilter;
 
+      console.log('Fazendo requisição para /fees com params:', params);
       const response = await api.get('/fees', { params });
+      console.log('Resposta recebida:', response.data);
       const data = response.data.data || [];
       
       const sorted = data.sort((a: Fee, b: Fee) => {
@@ -58,8 +66,10 @@ export default function Fees() {
       
       setFees(sorted);
       setTotalPages(response.data.total_pages || 1);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao carregar mensalidades:', error);
+      console.error('Detalhes:', error.response?.data);
+      console.error('Status:', error.response?.status);
     } finally {
       setLoading(false);
     }
