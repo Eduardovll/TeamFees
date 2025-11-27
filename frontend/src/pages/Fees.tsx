@@ -87,7 +87,7 @@ export default function Fees() {
   const handleEdit = (fee: Fee) => {
     setSelectedFee(fee);
     setEditForm({
-      valor: fee.valor,
+      valor: fee.valor / 100,
       vencimento: fee.vencimento.split('T')[0]
     });
     setShowEditModal(true);
@@ -98,7 +98,10 @@ export default function Fees() {
 
     setSubmitting(true);
     try {
-      await api.put(`/fees/${selectedFee.id}`, editForm);
+      await api.put(`/fees/${selectedFee.id}`, {
+        valor: Math.round(editForm.valor * 100),
+        vencimento: editForm.vencimento
+      });
       alert('Mensalidade atualizada com sucesso!');
       setShowEditModal(false);
       loadFees();
@@ -354,14 +357,16 @@ export default function Fees() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Valor (em centavos)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Valor (R$)</label>
                   <input
                     type="number"
+                    step="0.01"
+                    min="0"
                     value={editForm.valor}
-                    onChange={(e) => setEditForm({ ...editForm, valor: parseInt(e.target.value) })}
+                    onChange={(e) => setEditForm({ ...editForm, valor: parseFloat(e.target.value) || 0 })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Ex: 150.00"
                   />
-                  <p className="text-xs text-gray-500 mt-1">{formatCurrency(editForm.valor)}</p>
                 </div>
 
                 <div>
