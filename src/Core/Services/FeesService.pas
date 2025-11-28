@@ -120,7 +120,7 @@ begin
   Result.TotalCreated := 0;
   Result.TotalSkipped := 0;
   SetLength(Result.SkippedMembers, 0);
-  
+
   SkippedList := TList<string>.Create;
   try
     // Buscar membros

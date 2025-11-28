@@ -5,11 +5,10 @@
         <FrameworkType>None</FrameworkType>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Release</Config>
-        <Platform Condition="'$(Platform)'==''">Win64</Platform>
+        <Platform Condition="'$(Platform)'==''">Linux64</Platform>
         <TargetedPlatforms>131</TargetedPlatforms>
         <AppType>Console</AppType>
         <MainSource>TeamFees.dpr</MainSource>
-        <ProjectName Condition="'$(ProjectName)'==''">TeamFees</ProjectName>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
         <Base>true</Base>
@@ -124,7 +123,7 @@
         <Debugger_Launcher>/usr/bin/gnome-terminal -- &quot;%debuggee%&quot;</Debugger_Launcher>
         <Manifest_File>(None)</Manifest_File>
         <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
-        <DCC_ExeOutput>C:\TeamFees-Clean\Win64\Release\</DCC_ExeOutput>
+        <DCC_ExeOutput>C:\TeamFees-Clean\Linux64\Release\</DCC_ExeOutput>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
         <DCC_UnitSearchPath>C:\TeamFees-Clean\src\App;C:\TeamFees-Clean\src\Core\Domain\Entities;C:\TeamFees-Clean\src\Core\Domain\Types;C:\TeamFees-Clean\src\Core\Interfaces;C:\TeamFees-Clean\src\Core\Services;C:\TeamFees-Clean\src\Core\Utils;C:\TeamFees-Clean\src\Infra\Auth;C:\TeamFees-Clean\src\Infra\Config;C:\TeamFees-Clean\src\Infra\Logging;C:\TeamFees-Clean\src\Infra\Messaging;C:\TeamFees-Clean\src\Infra\Payment;C:\TeamFees-Clean\src\Infra\Persistence;C:\TeamFees-Clean\src\Infra\Security;C:\TeamFees-Clean\src\Web\Controllers;C:\TeamFees-Clean\src\Web\Docs;C:\TeamFees-Clean\src\Web\Middlewares;C:\TeamFees-Clean\src\Web\Server;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>

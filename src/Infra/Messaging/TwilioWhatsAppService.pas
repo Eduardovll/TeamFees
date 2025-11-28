@@ -21,6 +21,7 @@ type
     constructor Create(const AccountSID, AuthToken, FromNumber: string);
     function SendPaymentReceipt(const PhoneNumber, MemberName: string; FeeId, AmountCents: Integer; const PaidAt: TDateTime): Boolean;
     function SendMessage(const PhoneNumber, Message: string): Boolean;
+    function SendNewTenantNotification(const PhoneNumber, BusinessName, BusinessType, Plan, Subdomain, AdminName, AdminEmail, AdminPhone: string): Boolean;
   end;
 
 implementation
@@ -145,6 +146,29 @@ begin
   finally
     HttpClient.Free;
   end;
+end;
+
+function TTwilioWhatsAppService.SendNewTenantNotification(const PhoneNumber, BusinessName, BusinessType, Plan, Subdomain, AdminName, AdminEmail, AdminPhone: string): Boolean;
+var
+  Message: string;
+begin
+  Message := Format(
+    '🎉 *NOVO TENANT CADASTRADO!*' + #10#10 +
+    '🏢 *Empresa:* %s' + #10 +
+    '📋 *Tipo:* %s' + #10 +
+    '💎 *Plano:* %s' + #10 +
+    '🌐 *Subdomínio:* %s' + #10 +
+    '📅 *Data:* %s' + #10#10 +
+    '👤 *DADOS DO RESPONSÁVEL*' + #10 +
+    '📛 *Nome:* %s' + #10 +
+    '📧 *Email:* %s' + #10 +
+    '📱 *Telefone:* %s' + #10#10 +
+    '✅ Conta criada com sucesso!' + #10 +
+    '_TeamFees SaaS - Notificação Automática_',
+    [BusinessName, BusinessType, Plan, Subdomain, FormatDateTime('dd/mm/yyyy hh:nn', Now), AdminName, AdminEmail, AdminPhone]
+  );
+  
+  Result := SendMessage(PhoneNumber, Message);
 end;
 
 end.

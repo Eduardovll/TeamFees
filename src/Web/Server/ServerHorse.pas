@@ -61,7 +61,7 @@ begin
   var Conn2 := TFDConnectionFactory.CreatePostgres(Cfg2);
   var TenantRepo := TTenantRepositoryFD.Create(Conn2);
   var MemberRepo := TMemberRepositoryFD.Create(Conn2);
-  RegisterTenantRoutes(TenantRepo, MemberRepo);
+  RegisterTenantRoutes(TenantRepo, MemberRepo, FeesController.WhatsAppSvc);
 
   // Rota de teste - comentada
   {THorse.Get('/checkhorse',
