@@ -1,4 +1,4 @@
-unit TenantController;
+﻿unit TenantController;
 
 interface
 
@@ -119,14 +119,13 @@ begin
     Response.AddPair('trial_ends_at', DateToISO8601(TrialEndsAt));
     Response.AddPair('message', 'Conta criada com sucesso! Verifique seu email.');
     
-    // Notificar admin via WhatsApp
+    // Notificar master_admin via WhatsApp
     try
       FWhatsAppSvc.SendNewTenantNotification(
         '18991159828',
         Body.GetValue<string>('business_name'),
         Body.GetValue<string>('business_type'),
         'Trial',
-        Subdomain,
         Body.GetValue<string>('admin_name'),
         Body.GetValue<string>('admin_email'),
         Body.GetValue<string>('admin_phone', 'Não informado')

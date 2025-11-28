@@ -21,7 +21,7 @@ type
     constructor Create(const AccountSID, AuthToken, FromNumber: string);
     function SendPaymentReceipt(const PhoneNumber, MemberName: string; FeeId, AmountCents: Integer; const PaidAt: TDateTime): Boolean;
     function SendMessage(const PhoneNumber, Message: string): Boolean;
-    function SendNewTenantNotification(const PhoneNumber, BusinessName, BusinessType, Plan, Subdomain, AdminName, AdminEmail, AdminPhone: string): Boolean;
+    function SendNewTenantNotification(const PhoneNumber, BusinessName, BusinessType, Plan, AdminName, AdminEmail, AdminPhone: string): Boolean;
   end;
 
 implementation
@@ -153,7 +153,7 @@ begin
   end;
 end;
 
-function TTwilioWhatsAppService.SendNewTenantNotification(const PhoneNumber, BusinessName, BusinessType, Plan, Subdomain, AdminName, AdminEmail, AdminPhone: string): Boolean;
+function TTwilioWhatsAppService.SendNewTenantNotification(const PhoneNumber, BusinessName, BusinessType, Plan, AdminName, AdminEmail, AdminPhone: string): Boolean;
 var
   Message: string;
 begin
@@ -163,7 +163,6 @@ begin
     'Nome: ' + BusinessName + #13#10 +
     'Tipo: ' + BusinessType + #13#10 +
     'Plano: ' + Plan + #13#10 +
-    'Empresa: ' + Subdomain + #13#10 +
     'Data: ' + FormatDateTime('dd/mm/yyyy hh:nn', Now) + #13#10#13#10 +
     '👤 *RESPONSÁVEL*' + #13#10 +
     'Nome: ' + AdminName + #13#10 +
