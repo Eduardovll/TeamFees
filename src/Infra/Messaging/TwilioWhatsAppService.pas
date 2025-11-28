@@ -1,4 +1,4 @@
-unit TwilioWhatsAppService;
+﻿unit TwilioWhatsAppService;
 
 interface
 
@@ -102,7 +102,8 @@ var
   HttpClient: THTTPClient;
   Response: IHTTPResponse;
   RequestBody: TStringStream;
-  Url, CleanPhone: string;
+  Url, CleanPhone, EncodedMessage: string;
+  MessageBytes: TBytes;
 begin
   Result := False;
   
@@ -110,9 +111,13 @@ begin
   if not CleanPhone.StartsWith('55') then
     CleanPhone := '55' + CleanPhone;
   
+  // Codificar mensagem preservando UTF-8
+  MessageBytes := TEncoding.UTF8.GetBytes(Message);
+  EncodedMessage := TNetEncoding.URL.EncodeBytesToString(MessageBytes);
+  
   HttpClient := THTTPClient.Create;
   try
-    HttpClient.ContentType := 'application/x-www-form-urlencoded';
+    HttpClient.ContentType := 'application/x-www-form-urlencoded; charset=utf-8';
     
     Url := Format('https://api.twilio.com/2010-04-01/Accounts/%s/Messages.json', [FAccountSID]);
     
@@ -129,7 +134,7 @@ begin
     RequestBody := TStringStream.Create(
       'From=' + TNetEncoding.URL.Encode('whatsapp:' + FFromNumber) +
       '&To=' + TNetEncoding.URL.Encode('whatsapp:+' + CleanPhone) +
-      '&Body=' + TNetEncoding.URL.Encode(Message),
+      '&Body=' + EncodedMessage,
       TEncoding.UTF8
     );
     try
@@ -152,21 +157,20 @@ function TTwilioWhatsAppService.SendNewTenantNotification(const PhoneNumber, Bus
 var
   Message: string;
 begin
-  Message := Format(
-    '🎉 *NOVO TENANT CADASTRADO!*' + #10#10 +
-    '🏢 *Empresa:* %s' + #10 +
-    '📋 *Tipo:* %s' + #10 +
-    '💎 *Plano:* %s' + #10 +
-    '🌐 *Subdomínio:* %s' + #10 +
-    '📅 *Data:* %s' + #10#10 +
-    '👤 *DADOS DO RESPONSÁVEL*' + #10 +
-    '📛 *Nome:* %s' + #10 +
-    '📧 *Email:* %s' + #10 +
-    '📱 *Telefone:* %s' + #10#10 +
-    '✅ Conta criada com sucesso!' + #10 +
-    '_TeamFees SaaS - Notificação Automática_',
-    [BusinessName, BusinessType, Plan, Subdomain, FormatDateTime('dd/mm/yyyy hh:nn', Now), AdminName, AdminEmail, AdminPhone]
-  );
+  Message :=
+    '🎉 *NOVO CLIENTE CADASTRADO!*' + #13#10#13#10 +
+    '🏢 *EMPRESA*' + #13#10 +
+    'Nome: ' + BusinessName + #13#10 +
+    'Tipo: ' + BusinessType + #13#10 +
+    'Plano: ' + Plan + #13#10 +
+    'Empresa: ' + Subdomain + #13#10 +
+    'Data: ' + FormatDateTime('dd/mm/yyyy hh:nn', Now) + #13#10#13#10 +
+    '👤 *RESPONSÁVEL*' + #13#10 +
+    'Nome: ' + AdminName + #13#10 +
+    'Email: ' + AdminEmail + #13#10 +
+    'Telefone: ' + AdminPhone + #13#10#13#10 +
+    '✅ Conta criada com sucesso!' + #13#10 +
+    '_TeamFees SaaS - Notificação Automática_';
   
   Result := SendMessage(PhoneNumber, Message);
 end;
